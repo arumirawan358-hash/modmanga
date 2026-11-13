@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="ModManga AI">
+  <defs>
+    <linearGradient id="mm-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff2d75"/>
+      <stop offset="1" stop-color="#8b2bff"/>
+    </linearGradient>
+    <pattern id="mm-dots" width="18" height="18" patternUnits="userSpaceOnUse">
+      <circle cx="4" cy="4" r="2.1" fill="#ffffff" opacity="0.13"/>
+    </pattern>
+    <clipPath id="mm-round"><rect width="512" height="512" rx="116"/></clipPath>
+  </defs>
+  <g clip-path="url(#mm-round)">
+    <rect width="512" height="512" fill="#0b0b14"/>
+    <rect width="512" height="512" fill="url(#mm-dots)"/>
+    <circle cx="452" cy="70" r="130" fill="#ff2d75" opacity="0.22"/>
+    <circle cx="52" cy="452" r="150" fill="#22e6ff" opacity="0.16"/>
+    <path d="M128 366V158h62l66 104 66-104h62v208h-56V266l-72 112-72-112v100z" fill="#22e6ff" opacity="0.85" transform="translate(10 10)"/>
+    <path d="M128 366V158h62l66 104 66-104h62v208h-56V266l-72 112-72-112v100z" fill="url(#mm-grad)" stroke="#0b0b14" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M372 92l10 26 26 10-26 10-10 26-10-26-26-10 26-10z" fill="#ffd60a"/>
+  </g>
+</svg>

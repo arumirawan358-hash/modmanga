@@ -1,0 +1,53 @@
+name: Deploy ke GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Siapkan artefak statis
+        run: |
+          mkdir -p _site
+          cp -R index.html 404.html manifest.webmanifest sw.js assets _site/
+          touch _site/.nojekyll
+          echo "Isi _site:" && ls -la _site
+
+      - name: Coba aktifkan GitHub Pages (opsional)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${{ github.repository }}/pages" --jq '"Pages sudah aktif: \(.html_url)"' \
+            || gh api -X POST "repos/${{ github.repository }}/pages" -f build_type=workflow \
+            || echo "::warning::Pages belum aktif. Buka Settings → Pages → Source: GitHub Actions, lalu jalankan ulang workflow ini."
+
+      - name: Konfigurasi Pages
+        uses: actions/configure-pages@v5
+
+      - name: Unggah artefak
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "_site"
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
