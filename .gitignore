@@ -1,0 +1,14 @@
+# Android / build artifacts
+*.aab
+*.dex
+*.class
+bin/
+gen/
+out/
+build/
+.gradle/
+.local/
+*.iml
+.idea/
+.DS_Store
+Thumbs.db
