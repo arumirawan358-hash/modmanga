@@ -396,6 +396,8 @@ async function puterSpeak() {
   const instructions = cfg.supportsInstructions ? (els.style?.value || "").trim() : "";
   const parts = chunkText(text, NEURAL_PART_CHARS);
 
+  releaseFocus();
+
   if (!getPrefs().puterConnected) {
     try {
       const user = await connectPuter();
@@ -433,7 +435,7 @@ async function puterSpeak() {
       });
 
       const src = audio?.src || audio?.getAttribute?.("src") || "";
-      if (!src) throw new AiError("Puter tidak mengembalikan berkas audio.", { code: "empty", provider: "puter" });
+      if (!src) throw new AiError("Hanzal AI tidak mengembalikan berkas audio.", { code: "empty", provider: "puter" });
 
       if (parts.length === 1) {
         singleSrc = src;
@@ -492,12 +494,24 @@ async function puterSpeak() {
 }
 
 /* ---------------- aksi utama ---------------- */
+/** Lepas fokus dari textarea supaya iOS/Android tidak "zoom" saat input kecil. */
+function releaseFocus() {
+  const active = document.activeElement;
+  if (active && (active.tagName === "TEXTAREA" || active.tagName === "INPUT")) {
+    active.blur();
+    // reflow kecil agar viewport kembali normal
+    window.scrollTo(window.scrollX, window.scrollY);
+  }
+}
+
 function speak() {
   const text = (els.text?.value || "").trim();
   if (!text) {
     toast("Tulis dulu naskahnya.", { type: "warn" });
     return;
   }
+
+  releaseFocus();
 
   if (mode === "puter") {
     puterSpeak();

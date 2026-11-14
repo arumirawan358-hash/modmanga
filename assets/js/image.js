@@ -115,7 +115,7 @@ function updateHint() {
 
   if (engine === "puter") {
     els.hint.textContent = !getPrefs().puterConnected
-      ? "Puter belum terhubung. Hubungkan akun gratis di Pengaturan — atau pakai Pollinations tanpa login."
+      ? "Hanzal AI butuh login Puter. Klik Login ke Puter di Pengaturan — atau pakai Pollinations tanpa login."
       : pending > 1
         ? `${pending} gambar diproses berurutan tanpa jeda buatan.`
         : "Puter · model gambar akunmu · kualitas & rasio lebih fleksibel.";
@@ -248,7 +248,7 @@ function showError(message, { connect = false } = {}) {
         <p>${escapeHtml(message)}</p>
       </div>
       <div class="gen-error-actions">
-        ${connect ? '<button type="button" class="primary-btn sm" data-connect="1">Hubungkan Puter</button>' : ""}
+        ${connect ? '<button type="button" class="primary-btn sm" data-connect="1">Login ke Puter</button>' : ""}
         <button type="button" class="ghost-btn" data-retry="1">Coba lagi</button>
         <button type="button" class="ghost-btn" data-dismiss="1">Tutup</button>
       </div>
@@ -543,7 +543,7 @@ function bind() {
         toast(`Terhubung sebagai ${user.username}.`, { type: "ok" });
         hideStatus();
       } catch (error) {
-        toast(error?.message || "Gagal menghubungkan Puter.", { type: "error" });
+        toast(error?.message || "Gagal login ke Puter.", { type: "error" });
       } finally {
         button.disabled = false;
       }

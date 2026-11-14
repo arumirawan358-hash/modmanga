@@ -172,7 +172,7 @@ export async function* pollinationsChat({ messages, system = "", signal } = {}) 
   }
 
   if (res.status === 402 || res.status === 429) {
-    throw new AiError("Kuota gratis Pollinations sedang jeda. Tunggu hitungan mundur, atau pindah ke Puter AI.", {
+    throw new AiError("Kuota gratis Pollinations sedang jeda. Tunggu hitungan mundur, atau pindah ke Hanzal AI.", {
       code: "rate_limit",
       provider: "pollinations",
       retryAfter: parseRetryAfter(res, POLLINATIONS.textCooldown),
@@ -284,7 +284,7 @@ export async function fetchPollinationsImage(url, { signal, attempts = 4, onRetr
       const suggested = parseRetryAfter(res, 1200 * attempt);
       const waitMs = Math.min(suggested, 4500); // jangan pernah menyuruh menunggu 45 detik
       lastError = new AiError(
-        "Kuota gambar gratis sedang ramai. Sudah dicoba otomatis beberapa kali — coba lagi atau pakai mesin Puter.",
+        "Kuota gambar gratis sedang ramai. Sudah dicoba otomatis beberapa kali — coba lagi atau pakai Hanzal AI.",
         { code: "rate_limit", provider: "pollinations", retryAfter: waitMs },
       );
       if (attempt >= attempts) throw lastError;
@@ -447,11 +447,11 @@ export async function listPuterModels() {
 function mapPuterError(error) {
   if (error instanceof AiError) return error;
   const code = error?.errorCode || error?.code || error?.error?.code || "";
-  const message = error?.message || error?.error?.message || String(error || "Kesalahan Puter");
+  const message = error?.message || error?.error?.message || String(error || "Kesalahan Hanzal AI");
   const haystack = `${code} ${message}`.toLowerCase();
 
   if (/auth|sign ?in|login|not_?logged|permission|401|403/.test(haystack)) {
-    return new AiError("Perlu masuk ke akun Puter dulu. Buka Pengaturan → Hubungkan.", {
+    return new AiError("Perlu login Puter dulu untuk memakai Hanzal AI. Buka Pengaturan → Login ke Puter.", {
       code: "auth",
       provider: "puter",
       cause: error,
@@ -472,7 +472,7 @@ function mapPuterError(error) {
     });
   }
   if (/network|fetch|failed to fetch|timeout/.test(haystack)) {
-    return new AiError("Koneksi ke Puter gagal. Periksa internetmu lalu coba lagi.", {
+    return new AiError("Koneksi ke Hanzal AI (Puter) gagal. Periksa internetmu lalu coba lagi.", {
       code: "network",
       provider: "puter",
       cause: error,
@@ -497,7 +497,7 @@ export async function* puterChat({ messages, system = "", model, signal } = {}) 
   const puter = await ensurePuter();
   const signedIn = await isPuterSignedIn();
   if (!signedIn) {
-    throw new AiError("Hubungkan akun Puter gratis dulu untuk memakai mesin ini.", {
+    throw new AiError("Hanzal AI butuh login Puter (gratis). Klik “Login ke Puter”, lalu coba lagi.", {
       code: "auth",
       provider: "puter",
     });
@@ -532,7 +532,7 @@ export async function* puterChat({ messages, system = "", model, signal } = {}) 
   }
 
   const text = puterTextOf(response);
-  if (!text) throw new AiError("Puter mengirim jawaban kosong. Coba model lain.", { code: "empty", provider: "puter" });
+  if (!text) throw new AiError("Hanzal AI mengirim jawaban kosong. Coba model lain.", { code: "empty", provider: "puter" });
   yield text;
 }
 
@@ -540,7 +540,7 @@ export async function puterImage({ prompt, model, aspectRatio, signal } = {}) {
   const puter = await ensurePuter();
   const signedIn = await isPuterSignedIn();
   if (!signedIn) {
-    throw new AiError("Hubungkan akun Puter gratis dulu untuk membuat gambar di mesin ini.", {
+    throw new AiError("Hanzal AI butuh login Puter (gratis). Klik “Login ke Puter”, lalu coba lagi.", {
       code: "auth",
       provider: "puter",
     });
@@ -558,7 +558,7 @@ export async function puterImage({ prompt, model, aspectRatio, signal } = {}) {
   }
 
   const src = typeof image === "string" ? image : image?.src;
-  if (!src) throw new AiError("Puter tidak mengembalikan gambar.", { code: "empty", provider: "puter" });
+  if (!src) throw new AiError("Hanzal AI tidak mengembalikan gambar.", { code: "empty", provider: "puter" });
 
   let res;
   try {
@@ -575,7 +575,7 @@ export async function puterSpeech({ text, provider, voice, model, instructions, 
   const puter = await ensurePuter();
   const signedIn = await isPuterSignedIn();
   if (!signedIn) {
-    throw new AiError("Hubungkan akun Puter gratis dulu untuk memakai suara neural.", {
+    throw new AiError("Hanzal AI butuh login Puter (gratis). Klik “Login ke Puter”, lalu coba lagi.", {
       code: "auth",
       provider: "puter",
     });

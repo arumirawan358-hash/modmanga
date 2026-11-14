@@ -1166,3 +1166,105 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 2px s
   .chips { gap: 6px; }
   .chip { font-size: 11px; padding: 8px 11px; }
 }
+
+/* ---------- 14. Splash loading + onboarding nama ---------- */
+.splash {
+  position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center;
+  background: radial-gradient(120% 90% at 50% 0%, #1b1140 0%, #0a0912 55%, #050409 100%);
+  overflow: hidden; transition: opacity .55s var(--ease), visibility .55s;
+}
+.splash.is-out { opacity: 0; visibility: hidden; }
+.splash-grid {
+  position: absolute; inset: -10%;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, .05) 1px, transparent 1px);
+  background-size: 46px 46px;
+  mask-image: radial-gradient(circle at 50% 45%, #000 0%, transparent 72%);
+  animation: splashGrid 18s linear infinite;
+}
+@keyframes splashGrid { to { transform: translate3d(46px, 46px, 0); } }
+.splash-glow {
+  position: absolute; width: 78vmin; height: 78vmin; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 45, 117, .30), rgba(139, 43, 255, .16) 45%, transparent 70%);
+  filter: blur(12px); animation: splashGlow 4.5s ease-in-out infinite;
+}
+@keyframes splashGlow { 0%, 100% { transform: scale(.92); opacity: .75; } 50% { transform: scale(1.08); opacity: 1; } }
+.splash-inner { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 24px; text-align: center; }
+.splash-logo { position: relative; width: 124px; height: 124px; display: grid; place-items: center; margin-bottom: 4px; }
+.splash-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  border: 2px dashed rgba(255, 45, 117, .55);
+  animation: splashSpin 9s linear infinite;
+}
+.splash-ring.is-slow { inset: 14px; border-style: solid; border-color: rgba(139, 43, 255, .45); animation-duration: 14s; animation-direction: reverse; }
+@keyframes splashSpin { to { transform: rotate(360deg); } }
+.splash-mark {
+  width: 74px; height: 74px; border-radius: 22px; display: grid; place-items: center;
+  font-family: var(--font-display); font-size: 40px; color: #fff; line-height: 1;
+  background: linear-gradient(140deg, #ff2d75, #8b2bff);
+  box-shadow: 0 18px 46px rgba(255, 45, 117, .38), inset 0 0 0 1px rgba(255, 255, 255, .18);
+  animation: splashPop .9s cubic-bezier(.18, .9, .25, 1.2) both;
+  padding-top: 4px;
+}
+@keyframes splashPop { from { transform: scale(.6) rotate(-14deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.splash-brand {
+  font-family: var(--font-display); font-size: 40px; letter-spacing: 2.4px; color: #fff;
+  display: flex; align-items: baseline; gap: 8px;
+}
+.splash-brand span { font-size: 20px; color: #ff5c96; letter-spacing: 1.6px; }
+.splash-tag { color: #b9b5cf; font-size: 13px; margin: 0; }
+.splash-progress {
+  width: min(280px, 72vw); height: 6px; border-radius: 999px; overflow: hidden;
+  background: rgba(255, 255, 255, .10); margin-top: 10px;
+}
+.splash-progress i {
+  display: block; height: 100%; width: 6%; border-radius: 999px;
+  background: linear-gradient(90deg, #ff2d75, #8b2bff, #22d3ee);
+  background-size: 200% 100%;
+  transition: width .35s ease; animation: splashShine 1.6s linear infinite;
+}
+@keyframes splashShine { to { background-position: 200% 0; } }
+.splash-status { color: #8e89ad; font-size: 11.5px; letter-spacing: .3px; margin: 0; min-height: 1.2em; }
+.splash-foot { position: absolute; bottom: calc(18px + env(safe-area-inset-bottom)); color: #5b5674; font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; }
+
+/* onboarding */
+.onboard {
+  position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 20px;
+  background: rgba(6, 5, 12, .72); backdrop-filter: blur(8px);
+  animation: fadeIn .25s ease;
+}
+.onboard[hidden] { display: none; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.onboard-card {
+  width: min(430px, 100%); background: var(--panel-solid, #121120); border: 1px solid var(--line);
+  border-radius: 22px; padding: 26px; box-shadow: 0 40px 90px rgba(0, 0, 0, .55);
+  display: flex; flex-direction: column; gap: 8px;
+  animation: onboardIn .34s cubic-bezier(.2, .9, .3, 1.1) both;
+}
+@keyframes onboardIn { from { transform: translateY(18px) scale(.96); opacity: 0; } to { transform: none; opacity: 1; } }
+.onboard-badge {
+  width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
+  font-family: var(--font-display); font-size: 27px; color: #fff; line-height: 1;
+  background: linear-gradient(140deg, #ff2d75, #8b2bff); margin-bottom: 6px; padding-top: 3px;
+  box-shadow: 0 12px 28px rgba(255, 45, 117, .35);
+}
+.onboard-card h2 { font-family: var(--font-display); font-weight: 400; font-size: 30px; letter-spacing: .6px; margin: 0; color: var(--ink); }
+.onboard-sub { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0 0 6px; }
+.onboard-note { color: var(--muted); font-size: 10.5px; line-height: 1.5; margin: 2px 0 0; }
+.onboard-card form { display: flex; flex-direction: column; gap: 12px; }
+.onboard-card .field span { font-size: 11.5px; font-weight: 700; color: var(--ink-soft); }
+.onboard-card .primary-btn { width: 100%; }
+
+/* baris field + tombol di pengaturan */
+.field-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.field-row .field { flex: 1 1 200px; margin: 0; }
+
+/* ---------- 15. Anti-zoom saat fokus input (iOS/Android) ---------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+@media (pointer: coarse) {
+  input, textarea, select { font-size: 16px; }
+  button, .chip, .tab, .nav-item, .round-btn { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+}
+/* naskah TTS tidak "melar" saat teksnya panjang */
+#ttsText { max-height: 46vh; overflow: auto; }

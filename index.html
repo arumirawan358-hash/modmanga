@@ -27,6 +27,41 @@
 <link rel="stylesheet" href="assets/css/app.css">
 </head>
 <body>
+
+<!-- ==================== SPLASH LOADING ==================== -->
+<div class="splash" id="splash" aria-live="polite" aria-label="Memuat ModManga AI">
+  <div class="splash-grid" aria-hidden="true"></div>
+  <div class="splash-glow" aria-hidden="true"></div>
+  <div class="splash-inner">
+    <div class="splash-logo" aria-hidden="true">
+      <span class="splash-ring"></span>
+      <span class="splash-ring is-slow"></span>
+      <span class="splash-mark">M</span>
+    </div>
+    <div class="splash-brand">MODMANGA<span>AI</span></div>
+    <p class="splash-tag">Studio gratis: chat, gambar, dan suara — tanpa API key.</p>
+    <div class="splash-progress"><i id="splashBar"></i></div>
+    <p class="splash-status" id="splashStatus">Menyalakan mesin…</p>
+  </div>
+  <p class="splash-foot">Malam Ink · v1.1</p>
+</div>
+
+<!-- ==================== NAMA PENGGUNA (tanpa login) ==================== -->
+<div class="onboard" id="onboard" hidden>
+  <div class="onboard-card" role="dialog" aria-modal="true" aria-labelledby="onboardTitle">
+    <div class="onboard-badge" aria-hidden="true">M</div>
+    <h2 id="onboardTitle">Kenalan dulu, yuk</h2>
+    <p class="onboard-sub">Tidak perlu login, tidak perlu akun. Cukup tulis namamu — semua fitur langsung terbuka.</p>
+    <form id="onboardForm">
+      <label class="field">
+        <span>Nama kamu</span>
+        <input id="onboardName" type="text" maxlength="24" placeholder="mis. Rani" autocomplete="nickname" enterkeyhint="done" required>
+      </label>
+      <button class="primary-btn" type="submit">Masuk studio →</button>
+    </form>
+    <p class="onboard-note">Nama hanya disimpan di perangkatmu (localStorage), tidak dikirim ke mana pun.</p>
+  </div>
+</div>
 <a class="skip-link" href="#main">Lompat ke konten</a>
 <div class="bg-fx" aria-hidden="true">
   <div class="bg-glow bg-glow-a"></div>
@@ -125,7 +160,7 @@
             <select id="chatEngine">
               <option value="auto">Auto</option>
               <option value="pollinations">Pollinations</option>
-              <option value="puter">Puter AI</option>
+              <option value="puter">Hanzal AI</option>
               <option value="custom">API sendiri</option>
             </select>
           </label>
@@ -210,7 +245,7 @@
             <span>Mesin</span>
             <select id="imgEngine">
               <option value="pollinations">Pollinations · Flux</option>
-              <option value="puter">Puter · FLUX/GPT Image</option>
+              <option value="puter">Hanzal AI · FLUX / GPT Image</option>
             </select>
           </label>
           <label class="select-wrap" id="imgModelWrap" hidden>
@@ -305,7 +340,7 @@
         <div class="head-actions">
           <div class="segmented" id="ttsEngineSwitch" role="tablist" aria-label="Mesin suara">
             <button type="button" data-tts-engine="browser" class="is-active" role="tab" aria-selected="true">Browser</button>
-            <button type="button" data-tts-engine="puter" role="tab" aria-selected="false">Puter Neural</button>
+            <button type="button" data-tts-engine="puter" role="tab" aria-selected="false">Hanzal AI</button>
           </div>
         </div>
       </header>
@@ -361,7 +396,7 @@
               <label for="ttsStyle">Gaya bicara <span class="label-note">(opsional)</span></label>
               <input type="text" id="ttsStyle" maxlength="300" placeholder="Contoh: hangat, santai, seperti narator cerita" value="Bicara dalam Bahasa Indonesia yang natural, hangat, dan jelas.">
             </div>
-            <p class="hint">Butuh akun Puter gratis (bukan API key). Biaya pemakaian ditanggung akunmu sendiri, bukan developer.</p>
+            <p class="hint">Hanzal AI butuh login akun Puter gratis (bukan API key). Login sekali di popup Puter, setelah itu suara neural & unduhan aktif. Biaya pemakaian ditanggung akunmu sendiri.</p>
           </div>
 
           <button class="primary-btn" id="ttsBtn" type="button">
@@ -422,6 +457,21 @@
       </header>
 
       <div class="settings">
+        <section class="panel setting-card" id="profileCard">
+          <div class="setting-head">
+            <h2>Profil</h2>
+            <p>Nama panggilanmu. Tanpa akun, tanpa login — cukup nama.</p>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="setProfileName">Nama</label>
+              <input id="setProfileName" type="text" maxlength="24" placeholder="Nama kamu" autocomplete="nickname">
+            </div>
+            <button class="primary-btn sm" id="saveProfileName" type="button">Simpan nama</button>
+          </div>
+          <p class="hint">Tersimpan lokal. Dipakai untuk menyapamu di studio.</p>
+        </section>
+
         <section class="panel setting-card">
           <div class="setting-head">
             <h2>Tampilan</h2>
@@ -452,7 +502,7 @@
               <select id="setChatEngine" class="wide-select">
                 <option value="auto">Auto (rekomendasi)</option>
                 <option value="pollinations">Pollinations — tanpa login</option>
-                <option value="puter">Puter AI — akun gratis</option>
+                <option value="puter">Hanzal AI — perlu login Puter</option>
                 <option value="custom">API sendiri (OpenAI-compatible)</option>
               </select>
             </div>
@@ -460,7 +510,7 @@
               <label for="setImageEngine">Gambar default</label>
               <select id="setImageEngine" class="wide-select">
                 <option value="pollinations">Pollinations Flux</option>
-                <option value="puter">Puter FLUX / GPT Image</option>
+                <option value="puter">Hanzal AI · FLUX / GPT Image</option>
               </select>
             </div>
           </div>
@@ -468,19 +518,19 @@
 
         <section class="panel setting-card" id="puterCard">
           <div class="setting-head">
-            <h2>Akun Puter</h2>
-            <p>Opsional. Membuka model kelas atas, tanpa jeda 30 detik, dan suara neural yang bisa diunduh.</p>
+            <h2>Hanzal AI <span class="tag-opt">perlu login Puter</span></h2>
+            <p>Opsional. Hanzal AI memakai <b>akun gratis Puter</b> — login sekali lewat popup, lalu dapat model kelas atas, chat tanpa jeda 30 detik, dan suara neural yang bisa diunduh.</p>
           </div>
           <div class="account-row">
             <div class="account-info">
               <span class="avatar-round" id="puterAvatar"><svg class="ico" aria-hidden="true"><use href="#i-user"></use></svg></span>
               <div>
-                <b id="puterUser">Belum terhubung</b>
-                <small id="puterUserSub">Login gratis lewat popup Puter — tanpa API key.</small>
+                <b id="puterUser">Belum login ke Puter</b>
+                <small id="puterUserSub">Hanzal AI butuh akun gratis Puter. Login sekali, tanpa API key.</small>
               </div>
             </div>
             <div class="account-actions">
-              <button class="primary-btn sm" id="puterConnect" type="button">Hubungkan</button>
+              <button class="primary-btn sm" id="puterConnect" type="button">Login ke Puter</button>
               <button class="ghost-btn" id="puterSignOut" type="button" hidden>Keluar</button>
             </div>
           </div>
@@ -489,7 +539,7 @@
             <li><b>Suara:</b> OpenAI, Gemini, ElevenLabs, AWS Polly.</li>
             <li><b>Biaya:</b> ditanggung masing-masing akun pengguna (model User-Pays), developer bayar nol.</li>
           </ul>
-          <p class="hint">Dengan menekan Hubungkan, kamu menyetujui <a href="https://puter.com" target="_blank" rel="noopener">Syarat Puter</a>. Aplikasi ini memakai <a href="https://developer.puter.com" target="_blank" rel="noopener">Puter.js</a>.</p>
+          <p class="hint">Dengan menekan Login ke Puter, kamu menyetujui <a href="https://puter.com" target="_blank" rel="noopener">Syarat Puter</a>. Aplikasi ini memakai <a href="https://developer.puter.com" target="_blank" rel="noopener">Puter.js</a>.</p>
         </section>
 
         <section class="panel setting-card">
@@ -540,11 +590,11 @@
           </div>
           <details class="faq">
             <summary>Benarkah tanpa API key?</summary>
-            <p>Benar. Chat dan gambar memakai API publik <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a> yang tidak memerlukan kunci maupun pendaftaran. Suara memakai mesin suara bawaan browser. Fitur tambahan (Puter) memakai akun gratis, bukan API key.</p>
+            <p>Benar. Chat dan gambar memakai API publik <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a> yang tidak memerlukan kunci maupun pendaftaran. Suara memakai mesin suara bawaan browser. Fitur tambahan (Hanzal AI) memakai akun gratis Puter, bukan API key.</p>
           </details>
           <details class="faq">
             <summary>Apakah gambar harus menunggu 45 detik?</summary>
-            <p>Tidak. Tidak ada jeda buatan untuk gambar: setiap klik langsung diproses, dan klik berikutnya masuk antrean sehingga beberapa gambar bisa dibuat berurutan tanpa disuruh menunggu. Kalau penyedia publik sedang ramai, permintaan diulang otomatis di latar belakang. Chat tetap mengikuti batas penyedia (±30 detik per pesan) — hubungkan akun gratis Puter bila ingin langsung tanpa jeda.</p>
+            <p>Tidak. Tidak ada jeda buatan untuk gambar: setiap klik langsung diproses, dan klik berikutnya masuk antrean sehingga beberapa gambar bisa dibuat berurutan tanpa disuruh menunggu. Kalau penyedia publik sedang ramai, permintaan diulang otomatis di latar belakang. Chat tetap mengikuti batas penyedia (±30 detik per pesan) — login ke Hanzal AI (akun gratis Puter) bila ingin langsung tanpa jeda.</p>
           </details>
           <details class="faq">
             <summary>Apakah dataku dikirim ke suatu tempat?</summary>
@@ -552,11 +602,11 @@
           </details>
           <details class="faq">
             <summary>Suara browser kedengarannya berbeda di tiap perangkat?</summary>
-            <p>Mesin suara bawaan bergantung pada sistem operasi dan browser. Chrome di Android/desktop biasanya punya suara Bahasa Indonesia yang natural. Untuk hasil paling realistis dan bisa diunduh MP3/WAV, pakai Puter Neural.</p>
+            <p>Mesin suara bawaan bergantung pada sistem operasi dan browser. Chrome di Android/desktop biasanya punya suara Bahasa Indonesia yang natural. Untuk hasil paling realistis dan bisa diunduh MP3/WAV, pakai Hanzal AI (login Puter).</p>
           </details>
           <details class="faq">
             <summary>Boleh dipakai komersial?</summary>
-            <p>Kode aplikasi ini bebas kamu pakai. Untuk hasil gambar dan suara, ikuti ketentuan masing-masing penyedia (Pollinations, Puter, dan model di baliknya).</p>
+            <p>Kode aplikasi ini bebas kamu pakai. Untuk hasil gambar dan suara, ikuti ketentuan masing-masing penyedia (Pollinations, Hanzal AI/Puter, dan model di baliknya).</p>
           </details>
           <p class="about-foot">
             ModManga AI · dibuat untuk <a href="https://github.com/arumirawan358-hash/modmanga" target="_blank" rel="noopener">GitHub Pages</a> ·
