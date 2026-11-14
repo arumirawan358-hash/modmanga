@@ -44,6 +44,21 @@
     <p class="splash-status" id="splashStatus">Menyalakan mesin…</p>
   </div>
   <p class="splash-foot">Malam Ink · v1.1</p>
+  <noscript>
+    <p style="position:absolute;bottom:48px;left:0;right:0;text-align:center;color:#b9b5cf;font-size:13px">
+      JavaScript perlu diaktifkan untuk memakai studio ini.
+    </p>
+  </noscript>
+  <script>
+    /* jaring pengaman: jangan pernah biarkan splash menggantung */
+    setTimeout(function () {
+      var el = document.getElementById("splash");
+      if (el) {
+        el.classList.add("is-out");
+        setTimeout(function () { el.remove(); }, 600);
+      }
+    }, 7000);
+  </script>
 </div>
 
 <!-- ==================== NAMA PENGGUNA (tanpa login) ==================== -->
