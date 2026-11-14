@@ -18,7 +18,7 @@ const CHAT_KEY = "chats";
 const MAX_CONVS = 20;
 const MAX_MSGS = 60;
 const MAX_CONTENT = 4000;
-const ENGINE_LABEL = { pollinations: "Pollinations", puter: "Puter", custom: "API" };
+const ENGINE_LABEL = { pollinations: "Pollinations", puter: "Hanzal", custom: "API" };
 
 const state = { convs: [], activeId: null };
 let els = {};
@@ -179,7 +179,7 @@ function messageActions(msg) {
     <button type="button" data-act="copy" data-mid="${msg.id}"><svg class="ico" aria-hidden="true"><use href="#i-copy"></use></svg> Salin</button>
     <button type="button" data-act="speak" data-mid="${msg.id}"><svg class="ico" aria-hidden="true"><use href="#i-audio"></use></svg> Bacakan</button>
     <button type="button" data-act="retry" data-mid="${msg.id}"><svg class="ico" aria-hidden="true"><use href="#i-refresh"></use></svg> Ulangi</button>
-    ${connect ? `<button type="button" data-act="connect"><svg class="ico" aria-hidden="true"><use href="#i-key"></use></svg> Hubungkan Puter</button>` : ""}`;
+    ${connect ? `<button type="button" data-act="connect"><svg class="ico" aria-hidden="true"><use href="#i-key"></use></svg> Login ke Puter</button>` : ""}`;
 }
 
 function buildMessage(msg) {
@@ -352,8 +352,8 @@ function updateHint() {
 
   if (engine === "puter") {
     els.hint.textContent = getPrefs().puterConnected
-      ? `Puter AI · ${getPrefs().puterModel} · akunmu menanggung biaya pemakaian`
-      : "Puter belum terhubung · klik Hubungkan di Pengaturan";
+      ? `Hanzal AI · ${getPrefs().puterModel} · akunmu menanggung biaya pemakaian`
+      : "Hanzal AI belum aktif · klik Login ke Puter di Pengaturan";
     return;
   }
   if (engine === "custom") {
@@ -361,7 +361,7 @@ function updateHint() {
     return;
   }
   els.hint.textContent = remaining > 0
-    ? `Jeda gratis ${Math.ceil(remaining / 1000)} detik · pindah ke Puter AI untuk lanjut sekarang`
+    ? `Jeda gratis ${Math.ceil(remaining / 1000)} detik · pindah ke Hanzal AI untuk lanjut sekarang`
     : "Tanpa login · tanpa API key · penyedia gratis membatasi 1 pesan / 30 detik";
 }
 
@@ -414,7 +414,7 @@ async function sendMessage(rawText) {
   if (engine === "pollinations") {
     const remaining = cooldown.remaining("pollinations-text");
     if (remaining > 0) {
-      toast(`Tunggu ${Math.ceil(remaining / 1000)} detik lagi, atau pindah ke Puter AI.`, { type: "warn" });
+      toast(`Tunggu ${Math.ceil(remaining / 1000)} detik lagi, atau pindah ke Hanzal AI.`, { type: "warn" });
       return;
     }
   }
@@ -450,7 +450,7 @@ async function respond(conv) {
     const message = {
       id: uid("m"),
       role: "assistant",
-      content: "Mesin **Puter AI** butuh akun Puter gratis (bukan API key). Tekan **Hubungkan Puter** di bawah atau di halaman Pengaturan, lalu ulangi pesanmu.",
+      content: "Mesin **Hanzal AI** butuh login akun Puter gratis (bukan API key). Tekan **Login ke Puter** di bawah atau di halaman Pengaturan, lalu ulangi pesanmu.",
       ts: Date.now(),
       engine: "puter",
       error: true,
@@ -517,18 +517,18 @@ async function respond(conv) {
         message.error = true;
         message.errorCode = failure.code;
         const advice = failure.code === "rate_limit"
-          ? "\n\n> Kuota gratis penyedia sedang jeda. Tunggu sebentar, pindah ke **Puter AI**, atau pakai API sendiri."
+          ? "\n\n> Kuota gratis penyedia sedang jeda. Tunggu sebentar, pindah ke **Hanzal AI**, atau pakai API sendiri."
           : failure.code === "auth"
-            ? "\n\n> Hubungkan akun Puter gratis lebih dulu, lalu ulangi."
+            ? "\n\n> Login Puter dulu untuk memakai Hanzal AI, lalu ulangi."
             : "";
         message.content = message.content.trim()
           ? `${message.content}${advice}`
           : `${failure.message}${advice}`;
         if (failure.code === "rate_limit") {
           cooldown.start("pollinations-text", failure.retryAfter || POLLINATIONS.textCooldown);
-          toast("Kuota gratis Pollinations sedang jeda. Coba Puter AI untuk lanjut sekarang.", { type: "warn" });
+          toast("Kuota gratis Pollinations sedang jeda. Coba Hanzal AI untuk lanjut sekarang.", { type: "warn" });
         } else if (failure.code === "auth") {
-          toast("Akun Puter belum terhubung.", { type: "warn" });
+          toast("Hanzal AI butuh login Puter dulu.", { type: "warn" });
         } else {
           toast(failure.message, { type: "error" });
         }
@@ -607,7 +607,7 @@ async function connectFromChat(button) {
     toast(`Terhubung sebagai ${user.username}. Ulangi pesanmu.`, { type: "ok" });
     renderAll();
   } catch (error) {
-    toast(error?.message || "Gagal menghubungkan Puter.", { type: "error" });
+    toast(error?.message || "Gagal login ke Puter.", { type: "error" });
   } finally {
     if (button) button.disabled = false;
   }

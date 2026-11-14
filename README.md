@@ -2,6 +2,9 @@
 
 **Studio AI gratis di browser: chat AI, gambar AI, dan text-to-speech neural — tanpa API key, tanpa server, tanpa biaya.**
 
+> Tanpa login. Saat pertama dibuka, aplikasi hanya menanyakan **namamu** (disimpan lokal) — itu saja.
+> Ingin fitur **Hanzal AI** (model kelas atas + suara neural)? Klik **Login ke Puter**, sekali saja.
+
 Aplikasi web statis (HTML + CSS + JavaScript murni) yang dideploy otomatis ke GitHub Pages. Semua data pengguna (percakapan, galeri, pengaturan) disimpan di perangkat masing-masing.
 
 🔗 **Demo:** https://arumirawan358-hash.github.io/modmanga/
@@ -20,6 +23,8 @@ Aplikasi web statis (HTML + CSS + JavaScript murni) yang dideploy otomatis ke Gi
 - Hitungan mundur otomatis saat kuota gratis penyedia sedang jeda
 
 ### 🖼️ Gambar AI
+- **Tanpa jeda**: klik berulang langsung diproses, permintaan berikutnya masuk antrean
+- **Retry otomatis** di latar belakang saat penyedia ramai (429/402/5xx) — tanpa menyuruhmu menunggu hitungan detik
 - Prompt + 10 preset gaya (anime, manga ink, cyberpunk, cat air, pixel art, dll.)
 - 5 rasio (1:1, 3:4, 4:3, 16:9, 9:16), seed yang bisa dikunci untuk hasil konsisten
 - Galeri lokal permanen (IndexedDB) lengkap dengan prompt, seed, dan tombol unduh
@@ -27,12 +32,15 @@ Aplikasi web statis (HTML + CSS + JavaScript murni) yang dideploy otomatis ke Gi
 - Penyempurnaan prompt otomatis & filter konten opsional
 
 ### 🔊 Teks ke Suara
+- **Tanpa batas karakter** — naskah sepanjang apa pun; browser membacakan per bagian, mesin neural memecah per ±1.200 karakter lalu menggabungkannya jadi satu berkas WAV
 - **Browser Neural** — memakai mesin suara bawaan perangkat (instan, gratis, bisa offline)
 - **Puter Neural** — Gemini TTS, OpenAI TTS, ElevenLabs, atau AWS Polly; hasil bisa diunduh
 - Pilih karakter suara, atur kecepatan & nada, atau tulis instruksi gaya bicara
 - Riwayat sesi, pemutar dengan animasi gelombang, contoh naskah siap pakai
 
 ### ⚙️ Lainnya
+- **Splash loading** animasi + onboarding nama sekali saja (tanpa akun/login)
+- Sapaan personal ("Hai, Rani") di sidebar, nama bisa diubah di Pengaturan → Profil
 - Tema **Malam Ink** (gelap) dan **Kertas Manga** (terang)
 - PWA: bisa di-install ke layar utama, shell tetap terbuka saat offline
 - Responsif penuh (mobile bottom-nav, desktop sidebar)
@@ -45,17 +53,18 @@ Aplikasi web statis (HTML + CSS + JavaScript murni) yang dideploy otomatis ke Gi
 | Fitur | Penyedia | Kunci? | Catatan |
 | --- | --- | --- | --- |
 | Chat | [Pollinations Classic](https://pollinations.ai) (GPT-OSS 20B) | ❌ tidak perlu | Gratis per IP, **1 pesan / 30 detik** |
-| Gambar | [Pollinations](https://pollinations.ai) (Flux) | ❌ tidak perlu | Gratis, maks 768 px, **1 gambar / 45 detik**, ada logo kecil |
+| Gambar | [Pollinations](https://pollinations.ai) (Flux) | ❌ tidak perlu | Gratis, maks 768 px, **tanpa jeda buatan** (antrean + retry otomatis), ada logo kecil |
 | Suara | Web Speech API (bawaan browser) | ❌ tidak perlu | Instan, tergantung suara terpasang di perangkat |
-| Chat & suara premium (opsional) | [Puter.js](https://developer.puter.com) | ❌ tanpa API key | Cukup akun Puter gratis (model User-Pays) |
+| **Hanzal AI** (chat, gambar, suara premium — opsional) | [Puter.js](https://developer.puter.com) | ❌ tanpa API key | Butuh **login akun Puter gratis** (model User-Pays) |
 | Chat via API sendiri (opsional) | Groq / OpenRouter / Ollama / dll. | 🔑 milikmu | Hanya jika kamu mau tanpa batas |
 
 Aplikasi ini **tidak menyimpan API key developer** karena memang tidak membutuhkannya. Kalau kamu punya endpoint OpenAI-compatible gratis, tempelkan di **Pengaturan → API sendiri**; kuncinya hanya tinggal di localStorage browser.
 
 ### Batas kuota & saran
-- Pollinations membatasi per alamat IP. Karena itu tombol kirim menampilkan hitungan mundur 30 detik (chat) dan 45 detik (gambar).
-- Ingin tanpa jeda? Hubungkan akun Puter gratis (klik **Hubungkan** di Pengaturan atau pada kartu error) — dapat akses GPT, Claude, Gemini, Grok, DeepSeek, Qwen, Llama, dan suara neural.
-- Model Puter memakai model *User-Pays*: tiap pengguna menanggung pemakaiannya sendiri, developer tidak bayar apa pun.
+- **Gambar**: tidak ada jeda buatan. Setiap klik diproses, klik berikutnya masuk antrean, dan bila penyedia membalas 429/402 permintaan diulang otomatis (maks 4 percobaan, jeda antar-percobaan ≤4,5 detik) sambil menampilkan status "coba ulang otomatis".
+- **Chat**: masih mengikuti batas penyedia (±30 detik per pesan) sehingga tombol kirim menampilkan hitungan mundur.
+- Ingin chat tanpa jeda juga? Aktifkan **Hanzal AI** dengan login akun Puter gratis (klik **Login ke Puter** di Pengaturan atau pada kartu error) — dapat akses GPT, Claude, Gemini, Grok, DeepSeek, Qwen, Llama, dan suara neural.
+- Hanzal AI memakai model *User-Pays* di Puter: tiap pengguna menanggung pemakaian akunnya sendiri, developer tidak bayar apa pun.
 
 ---
 

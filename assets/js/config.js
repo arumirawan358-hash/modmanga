@@ -4,7 +4,7 @@
 
 export const APP_INFO = {
   name: "ModManga AI",
-  version: "1.0.0",
+  version: "1.1.0",
   repo: "https://github.com/arumirawan358-hash/modmanga",
 };
 
@@ -223,6 +223,7 @@ export const VOICES_PREF = {
 
 export const DEFAULT_PREFS = {
   theme: "dark",
+  profile: { name: "" },
   chatEngine: "auto",
   imageEngine: "pollinations",
   puterModel: "google/gemini-3.8-flash",

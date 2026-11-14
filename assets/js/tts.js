@@ -9,7 +9,7 @@ import { TTS_PROVIDERS, TTS_SAMPLES, VOICES_PREF } from "./config.js";
 import { getPrefs, setPrefs, setTtsPrefs } from "./prefs.js";
 import { puterSpeech, connectPuter, AiError } from "./api.js";
 
-const MAX_CHARS = 3000;
+const NEURAL_PART_CHARS = 1200; // teks panjang dipecah per bagian, tanpa batas total
 
 let els = {};
 let voices = [];
@@ -323,14 +323,69 @@ function browserSpeak({ text, onStart, onEnd } = {}) {
 }
 
 /* ---------------- Puter speak ---------------- */
+function encodeWavBlob(buffer) {
+  const channels = Math.min(buffer.numberOfChannels, 2);
+  const frames = buffer.length;
+  const view = new DataView(new ArrayBuffer(44 + frames * channels * 2));
+  const str = (off, text) => { for (let i = 0; i < text.length; i++) view.setUint8(off + i, text.charCodeAt(i)); };
+  str(0, "RIFF");
+  view.setUint32(4, 36 + frames * channels * 2, true);
+  str(8, "WAVEfmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channels, true);
+  view.setUint32(24, buffer.sampleRate, true);
+  view.setUint32(28, buffer.sampleRate * channels * 2, true);
+  view.setUint16(32, channels * 2, true);
+  view.setUint16(34, 16, true);
+  str(36, "data");
+  view.setUint32(40, frames * channels * 2, true);
+
+  const data = [];
+  for (let c = 0; c < channels; c++) data.push(buffer.getChannelData(c));
+  let off = 44;
+  for (let i = 0; i < frames; i++) {
+    for (let c = 0; c < channels; c++) {
+      const sample = Math.max(-1, Math.min(1, data[c][i]));
+      view.setInt16(off, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+      off += 2;
+    }
+  }
+  return new Blob([view.buffer], { type: "audio/wav" });
+}
+
+async function mergeBlobsToWav(blobs) {
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) throw new Error("Browser ini tidak bisa menggabungkan audio.");
+  const ctx = new Ctx();
+  try {
+    const buffers = [];
+    for (const blob of blobs) {
+      // eslint-disable-next-line no-await-in-loop
+      buffers.push(await ctx.decodeAudioData(await blob.arrayBuffer()));
+    }
+    const sampleRate = buffers[0].sampleRate;
+    const channels = Math.max(2, ...buffers.map((b) => b.numberOfChannels));
+    const gap = Math.floor(sampleRate * 0.25);
+    const total = buffers.reduce((sum, b) => sum + b.length + gap, 0);
+    const out = ctx.createBuffer(channels, total, sampleRate);
+    let offset = 0;
+    buffers.forEach((buffer) => {
+      for (let c = 0; c < channels; c++) {
+        out.getChannelData(c).set(buffer.getChannelData(Math.min(c, buffer.numberOfChannels - 1)), offset);
+      }
+      offset += buffer.length + gap;
+    });
+    return encodeWavBlob(out);
+  } finally {
+    ctx.close?.();
+  }
+}
+
 async function puterSpeak() {
   const text = (els.text?.value || "").trim();
   if (!text) {
     toast("Tulis dulu naskahnya.", { type: "warn" });
-    return;
-  }
-  if (text.length > MAX_CHARS) {
-    toast(`Maksimal ${MAX_CHARS} karakter untuk suara neural.`, { type: "warn" });
     return;
   }
 
@@ -339,6 +394,9 @@ async function puterSpeak() {
   const voiceId = els.voice?.value || cfg.defaultVoice;
   const voiceMeta = cfg.voices.find((voice) => voice.id === voiceId);
   const instructions = cfg.supportsInstructions ? (els.style?.value || "").trim() : "";
+  const parts = chunkText(text, NEURAL_PART_CHARS);
+
+  releaseFocus();
 
   if (!getPrefs().puterConnected) {
     try {
@@ -355,21 +413,51 @@ async function puterSpeak() {
   audioLoading = true;
   if (els.btn) {
     els.btn.disabled = true;
-    els.btn.querySelector("span").textContent = "Menyiapkan suara…";
+    els.btn.querySelector("span").textContent = parts.length > 1 ? `Bagian 1/${parts.length}…` : "Menyiapkan suara…";
   }
 
   try {
-    const audio = await puterSpeech({
-      text,
-      provider,
-      voice: voiceId,
-      model: cfg.defaultModel,
-      instructions,
-      language: voiceMeta?.language,
-    });
+    const blobs = [];
+    let singleSrc = "";
 
-    const src = audio?.src || audio?.getAttribute?.("src") || "";
-    if (!src) throw new AiError("Puter tidak mengembalikan berkas audio.", { code: "empty", provider: "puter" });
+    for (let i = 0; i < parts.length; i += 1) {
+      if (els.btn && parts.length > 1) {
+        els.btn.querySelector("span").textContent = `Bagian ${i + 1}/${parts.length}…`;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      const audio = await puterSpeech({
+        text: parts[i],
+        provider,
+        voice: voiceId,
+        model: cfg.defaultModel,
+        instructions,
+        language: voiceMeta?.language,
+      });
+
+      const src = audio?.src || audio?.getAttribute?.("src") || "";
+      if (!src) throw new AiError("Hanzal AI tidak mengembalikan berkas audio.", { code: "empty", provider: "puter" });
+
+      if (parts.length === 1) {
+        singleSrc = src;
+        break;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      const res = await fetch(src);
+      if (!res.ok) throw new AiError("Bagian audio tidak bisa diambil ulang.", { code: "http", provider: "puter" });
+      // eslint-disable-next-line no-await-in-loop
+      blobs.push(await res.blob());
+    }
+
+    let src = singleSrc;
+    let ext = provider === "gemini" ? "wav" : "mp3";
+
+    if (!src && blobs.length) {
+      if (els.btn) els.btn.querySelector("span").textContent = "Menggabungkan audio…";
+      const wav = await mergeBlobsToWav(blobs);
+      src = URL.createObjectURL(wav);
+      ext = "wav";
+    }
+    if (!src) throw new AiError("Audio tidak terbentuk. Coba lagi.", { code: "empty", provider: "puter" });
 
     showPlayer();
     if (els.audio) {
@@ -379,10 +467,13 @@ async function puterSpeak() {
     }
     if (els.download) {
       els.download.href = src;
-      els.download.download = `modmanga-suara-${provider}.${provider === "gemini" ? "wav" : "mp3"}`;
+      els.download.download = `modmanga-suara-${provider}.${ext}`;
     }
     if (els.playerTitle) els.playerTitle.textContent = text.slice(0, 60) + (text.length > 60 ? "…" : "");
-    if (els.playerMeta) els.playerMeta.textContent = `${cfg.label} · ${voiceId} · ${text.length} karakter`;
+    if (els.playerMeta) {
+      const extra = parts.length > 1 ? ` · ${parts.length} bagian digabung` : "";
+      els.playerMeta.textContent = `${cfg.label} · ${voiceId} · ${text.length.toLocaleString("id-ID")} karakter${extra}`;
+    }
     updateChip();
 
     addHistory({ text, provider, voice: voiceId, src, engine: "puter" });
@@ -403,6 +494,16 @@ async function puterSpeak() {
 }
 
 /* ---------------- aksi utama ---------------- */
+/** Lepas fokus dari textarea supaya iOS/Android tidak "zoom" saat input kecil. */
+function releaseFocus() {
+  const active = document.activeElement;
+  if (active && (active.tagName === "TEXTAREA" || active.tagName === "INPUT")) {
+    active.blur();
+    // reflow kecil agar viewport kembali normal
+    window.scrollTo(window.scrollX, window.scrollY);
+  }
+}
+
 function speak() {
   const text = (els.text?.value || "").trim();
   if (!text) {
@@ -410,12 +511,14 @@ function speak() {
     return;
   }
 
+  releaseFocus();
+
   if (mode === "puter") {
     puterSpeak();
     return;
   }
 
-  const limited = text.slice(0, MAX_CHARS);
+  const limited = text;
   showPlayer();
   if (els.audio) els.audio.hidden = true;
   if (els.download) els.download.hidden = true;

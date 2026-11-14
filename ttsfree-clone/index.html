@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Text to Speech Indonesian online free — TTS Klon (Suara AI Gratis)</title>
+<meta name="description" content="Klon halaman TTSFree Indonesian: ubah teks jadi suara Bahasa Indonesia natural, gratis, bisa unduh MP3. 3 mesin suara: Browser, Google, dan Neural.">
+<meta name="theme-color" content="#4f46e5">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body id="top">
+
+<!-- ============ HEADER ============ -->
+<header class="site-header" id="siteHeader">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top" aria-label="Beranda TTS Klon">
+      <span class="brand-mark" aria-hidden="true">T</span>
+      <span class="brand-name">TTSFree<em>.clone</em></span>
+    </a>
+
+    <nav class="nav" id="mainNav" aria-label="Navigasi utama">
+      <a href="#top">Beranda</a>
+      <a href="#try-now">Text to Speech</a>
+      <a href="#voices">Daftar Suara</a>
+      <a href="#how">Cara Pakai</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="btn-ghost" id="loginBtn" type="button">Masuk</button>
+      <a class="btn-primary btn-sm" href="#try-now">Coba Gratis</a>
+      <button class="burger" id="burger" type="button" aria-label="Buka menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="wrap hero-inner">
+    <div class="hero-copy">
+      <span class="pill">🎙️ 700+ suara AI · 140+ bahasa</span>
+      <h1>Text to Speech Indonesian <span class="grad">online free</span></h1>
+      <p class="lede">
+        Ubah teks Bahasa Indonesia menjadi suara yang natural &amp; manusiawi, langsung di browser.
+        Gratis, tanpa daftar, dan hasilnya bisa diunduh sebagai MP3.
+      </p>
+      <ul class="checks">
+        <li>✓ Suara neural pria &amp; wanita</li>
+        <li>✓ Unduh MP3</li>
+        <li>✓ Boleh untuk komersial</li>
+        <li>✓ Tanpa batas karakter</li>
+        <li>✓ Tanpa API key</li>
+      </ul>
+      <div class="hero-cta">
+        <a class="btn-primary btn-lg" href="#try-now">Coba Gratis Sekarang</a>
+        <button class="btn-outline btn-lg" id="demoBtn" type="button">▶ Dengarkan contoh</button>
+      </div>
+      <p class="hero-note">Tanpa batas karakter — teks sepanjang apa pun otomatis dipecah per bagian.</p>
+    </div>
+
+    <div class="hero-art" aria-hidden="true">
+      <div class="art-card">
+        <div class="art-head">
+          <span class="dot red"></span><span class="dot amber"></span><span class="dot green"></span>
+          <span class="art-title">Konverter suara</span>
+        </div>
+        <div class="art-body">
+          <div class="art-line w90"></div>
+          <div class="art-line w75"></div>
+          <div class="art-line w82"></div>
+          <div class="art-wave">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div class="art-voices">
+            <span class="chip-voice">👨 Ardi</span>
+            <span class="chip-voice">👩 Gadis</span>
+            <span class="chip-voice">👩 Standard-A</span>
+          </div>
+        </div>
+      </div>
+      <div class="float-badge fb-1">MB3</div>
+      <div class="float-badge fb-2">🎧</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MARQUEE / TRUST ============ -->
+<div class="trust">
+  <div class="wrap trust-inner">
+    <span>Didukung mesin suara:</span>
+    <b>Google Translate TTS</b><b>Web Speech API</b><b>Azure Neural</b><b>Amazon Polly</b><b>Gemini TTS</b>
+  </div>
+</div>
+
+<!-- ============ CONVERTER ============ -->
+<section class="section" id="try-now">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Konversi Teks ke Suara Sekarang</h2>
+      <p>Masukkan teks ke dalam kotak input di bawah ini, pilih bahasa dan suara yang diucapkan dari daftar untuk mulai mengonversi ke file suara.</p>
+    </div>
+
+    <div class="converter">
+      <!-- ---- kiri ---- -->
+      <div class="conv-main">
+        <div class="field">
+          <label for="text">Teks</label>
+          <textarea id="text" placeholder="Ketik atau tempel teks sepanjang apa pun di sini… Contoh: Selamat pagi, apa kabar? Hari ini kita akan belajar membuat suara AI."></textarea>
+          <div class="counter">
+            <span><b id="count">0</b> karakter · <b class="unlimited">tanpa batas</b></span>
+            <span class="counter-actions">
+              <button type="button" class="link" id="pasteBtn">Tempel</button>
+              <button type="button" class="link" id="clearText">Bersihkan</button>
+            </span>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="field">
+            <label for="lang">Bahasa</label>
+            <select id="lang"></select>
+          </div>
+          <div class="field">
+            <label>Mesin standar <span class="hint" id="engineHint">untuk suara AI-1</span></label>
+            <div class="seg" id="engineSeg" role="tablist" aria-label="Mesin suara standar">
+              <button type="button" data-engine="browser" role="tab" aria-selected="true">Browser</button>
+              <button type="button" data-engine="google" role="tab" aria-selected="false">Google</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="voice-head">
+          <span>Daftar Suara</span>
+          <span class="engine-legend">
+            <i class="tag tag-ai1">AI-1</i> standar
+            <i class="tag tag-ai2">AI-2</i> neural
+          </span>
+        </div>
+        <div class="voice-grid" id="voiceGrid" role="radiogroup" aria-label="Daftar suara"></div>
+
+        <div class="row-3">
+          <div class="field">
+            <label for="rate">Kecepatan bicara</label>
+            <select id="rate">
+              <option value="1">Default</option>
+              <option value="0.5">0.5× — sangat lambat</option>
+              <option value="0.75">0.75× — lambat</option>
+              <option value="1.25">1.25× — cepat</option>
+              <option value="1.5">1.5× — sangat cepat</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pitch">Nada bicara</label>
+            <select id="pitch">
+              <option value="1">Default</option>
+              <option value="0.7">Rendah (−3)</option>
+              <option value="0.85">Agak rendah (−1)</option>
+              <option value="1.15">Agak tinggi (+1)</option>
+              <option value="1.3">Tinggi (+3)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="volume">Volume suara <b id="volumeVal">100%</b></label>
+            <input type="range" id="volume" min="0" max="100" value="100">
+          </div>
+        </div>
+
+        <!-- ---- musik latar ---- -->
+        <div class="music" id="music">
+          <button class="music-toggle" id="musicToggle" type="button" aria-expanded="false" aria-controls="musicBody">
+            <span>🎵 Tambah musik latar</span>
+            <span class="switch" data-on="false" aria-hidden="true"></span>
+          </button>
+          <div class="music-body" id="musicBody" hidden>
+            <div class="music-tabs" role="tablist">
+              <button type="button" class="mtab is-active" data-mtab="library" role="tab" aria-selected="true">Dari Library</button>
+              <button type="button" class="mtab" data-mtab="soundcloud" role="tab" aria-selected="false">Dari Soundcloud</button>
+            </div>
+            <div class="mpanel" data-mpanel="library">
+              <div class="tracks" id="tracks"></div>
+              <p class="micro">Musik dibuat langsung oleh Web Audio API (bebas royalti) — tidak ada file eksternal yang diunduh.</p>
+            </div>
+            <div class="mpanel" data-mpanel="soundcloud" hidden>
+              <label class="micro" for="trackId">Track ID atau URL</label>
+              <div class="inline">
+                <input id="trackId" type="text" placeholder="https://soundcloud.com/keysofmoon/infinitely-ambient-music-free-download">
+                <button class="btn-outline" id="musicPreviewBtn" type="button">🔊 Preview</button>
+              </div>
+              <p class="micro">Di klon ini URL Soundcloud hanya dipakai sebagai label; audionya tetap dari library lokal agar bebas CORS.</p>
+            </div>
+            <div class="row-2 music-mix">
+              <div class="field">
+                <label for="musicVol">Volume musik <b id="musicVolVal">22%</b></label>
+                <input type="range" id="musicVol" min="0" max="100" value="22">
+              </div>
+              <label class="check-inline"><input type="checkbox" id="mixDownload" checked> Sertakan musik pada file unduhan</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="convert-bar">
+          <button class="btn-primary btn-convert" id="convert" type="button">
+            <span id="convertLabel">Konversi sekarang</span>
+          </button>
+          <div class="progress">
+            <div class="bar"><i id="bar"></i></div>
+            <span id="progressLabel">Siap dikonversi · 0%</span>
+          </div>
+        </div>
+        <p class="micro safe">Tidak ada teks yang disimpan di server. Semua proses berjalan di perangkatmu.</p>
+      </div>
+
+      <!-- ---- kanan: pemutar ---- -->
+      <aside class="conv-side">
+        <div class="player" id="player">
+          <div class="player-top">
+            <span class="player-badge" id="playerBadge">Belum ada audio</span>
+            <span class="player-engine" id="playerEngine">—</span>
+          </div>
+          <canvas class="wave" id="wave" width="640" height="120" aria-hidden="true"></canvas>
+          <div class="player-controls">
+            <button class="play-btn" id="playBtn" type="button" aria-label="Putar audio">
+              <span class="ico-play">▶</span><span class="ico-pause">❚❚</span>
+            </button>
+            <div class="player-time"><span id="curTime">0:00</span> / <span id="durTime">0:00</span></div>
+          </div>
+          <div class="player-title" id="playerTitle">Belum ada suara yang dibuat</div>
+          <div class="player-meta" id="playerMeta">Tulis teks, pilih suara, lalu klik Konversi sekarang.</div>
+          <div class="player-actions">
+            <button class="btn-primary btn-sm" id="downloadBtn" type="button" disabled>⬇ Unduh MP3</button>
+            <button class="btn-outline btn-sm" id="shareBtn" type="button" disabled>Bagikan</button>
+          </div>
+          <p class="micro" id="playerHint">Suara AI-2 (neural) butuh login gratis sekali klik. Suara AI-1 langsung jalan.</p>
+        </div>
+
+        <div class="history">
+          <div class="history-head">Riwayat sesi <button type="button" class="link" id="clearHistory">Hapus</button></div>
+          <ul id="historyList" class="history-list">
+            <li class="empty">Belum ada riwayat.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW TO ============ -->
+<section class="section section-alt" id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>How to convert text to speech in Indonesian accent?</h2>
+      <p>Mudah. Tiga langkah saja untuk hasil suara yang sempurna.</p>
+    </div>
+    <ol class="steps">
+      <li>
+        <span class="step-num">1</span>
+        <h3>Masukkan teks</h3>
+        <p>Ketik atau tempel teks apa pun yang ingin diubah menjadi suara.</p>
+      </li>
+      <li>
+        <span class="step-num">2</span>
+        <h3>Pilih suara &amp; bahasa</h3>
+        <p>Pilih dari daftar suara yang tersedia. Dengarkan preview sebelum membuat audio final.</p>
+      </li>
+      <li>
+        <span class="step-num">3</span>
+        <h3>Buat &amp; unduh</h3>
+        <p>Klik konversi lalu unduh berkas audio berkualitas tinggi. Pakai di mana saja.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ VOICE CATALOG ============ -->
+<section class="section" id="voices">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Bahasa Indonesia — Daftar Suara Text to Speech</h2>
+      <p>Tersedia 10 suara Indonesia (pria &amp; wanita). Klik ikon putar untuk mendengar demo suaranya.</p>
+    </div>
+    <div class="catalog" id="catalog"></div>
+    <div class="catalog-note">
+      <b>Catatan teknis:</b> di situs aslinya, <code>id-ID-ArdiNeural</code> &amp; <code>id-ID-GadisNeural</code> adalah suara
+      <b>Azure Neural</b>, sedangkan <code>id-ID-Wavenet-A…D</code> adalah <b>Google Cloud TTS</b> (premium).
+      Klon ini memetakan AI-1 ke mesin gratis (Google Translate / Web Speech) dan AI-2 ke mesin neural gratis via Puter.
+    </div>
+  </div>
+</section>
+
+<!-- ============ USECASES ============ -->
+<section class="section section-alt">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Text to speech Indonesian Usecases</h2>
+      <p>Dipakai kreator &amp; profesional di seluruh dunia</p>
+    </div>
+    <div class="cards-4">
+      <article class="ucard"><div class="uicon">📚</div><h3>E-Learning</h3><p>Buat materi kursus, audiobook, dan konten edukasi dengan narasi profesional.</p></article>
+      <article class="ucard"><div class="uicon">🎬</div><h3>Konten Kreator</h3><p>Tambah voice-over untuk YouTube, podcast, presentasi, dan media sosial tanpa ribet.</p></article>
+      <article class="ucard"><div class="uicon">♿</div><h3>Aksesibilitas</h3><p>Buat tulisan lebih mudah diakses pembaca tunanetra dan pengguna dengan kesulitan membaca.</p></article>
+      <article class="ucard"><div class="uicon">📢</div><h3>Marketing</h3><p>Hasilkan voice-over iklan, video promosi, dan demo produk dengan cepat.</p></article>
+    </div>
+    <div class="about">
+      <p>
+        <b>TTSFree.clone</b> adalah replika halaman “Text to Speech Indonesian” untuk keperluan belajar.
+        Semua suara dihasilkan di perangkatmu lewat tiga mesin gratis: <b>Web Speech API</b> bawaan browser,
+        <b>Google Translate TTS</b>, dan <b>Puter AI</b> (Azure Neural, Amazon Polly, Gemini, OpenAI, ElevenLabs).
+        Kamu bebas memakai hasil audionya untuk video, podcast, presentasi, maupun proyek komersial.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section" id="faq">
+  <div class="wrap wrap-narrow">
+    <div class="section-head">
+      <h2>Pertanyaan yang sering diajukan</h2>
+      <p>Seputar text to speech Bahasa Indonesia di halaman ini.</p>
+    </div>
+    <div class="faq" id="faqList">
+      <details open>
+        <summary>Apakah layanan text to speech ini gratis?</summary>
+        <p>Ya. Ketiga mesin yang dipakai di sini gratis: Web Speech API (bawaan browser), Google Translate TTS, dan Puter AI (butuh login gratis satu kali). Tidak ada biaya dan tidak perlu API key.</p>
+      </details>
+      <details>
+        <summary>Bagaimana cara kerja text to speech?</summary>
+        <p>Kamu memasukkan teks, memilih suara, lalu menekan tombol konversi. Teks dipecah per kalimat, dikirim ke mesin suara, dan hasilnya diputar sebagai audio yang bisa diunduh.</p>
+      </details>
+      <details>
+        <summary>Apakah suara Indonesianya tersedia pria dan wanita?</summary>
+        <p>Ya. Ada suara pria (Ardi / Standard-B / Standard-C) dan wanita (Gadis / Standard-A / Standard-D), plus empat suara premium Wavenet yang dikunci seperti di situs aslinya.</p>
+      </details>
+      <details>
+        <summary>Bisakah hasilnya dipakai untuk video atau proyek komersial?</summary>
+        <p>Bisa. Audio hasil konversi bebas kamu pakai untuk YouTube, e-learning, presentasi, podcast, maupun iklan. Perhatikan saja ketentuan masing-masing penyedia mesin suara.</p>
+      </details>
+      <details>
+        <summary>Format audio apa yang bisa diunduh?</summary>
+        <p>MP3 untuk mesin Google Translate &amp; Puter, dan WAV bila kamu menyertakan musik latar (hasil mixing dilakukan di browser). Mesin Browser tidak bisa diunduh langsung karena audio sistem tidak dapat direkam.</p>
+      </details>
+      <details>
+        <summary>Apakah teks saya disimpan?</summary>
+        <p>Tidak. Riwayat hanya disimpan di localStorage perangkatmu dan bisa dihapus kapan saja dengan tombol “Hapus”.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta-band">
+  <div class="wrap cta-inner">
+    <h2>Siap mengubah teks jadi suara?</h2>
+    <p>Gratis, tanpa daftar, langsung dari browser.</p>
+    <a class="btn-primary btn-lg" href="#try-now">Mulai konversi sekarang</a>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <span class="brand-mark small" aria-hidden="true">T</span>
+      <div>
+        <div class="brand-name">TTSFree<em>.clone</em></div>
+        <p>Replika edukasi dari halaman Text to Speech Indonesian. Tidak berafiliasi dengan TTSFree.com.</p>
+      </div>
+    </div>
+    <nav class="footer-nav" aria-label="Tautan footer">
+      <a href="#try-now">Konverter</a>
+      <a href="#voices">Daftar suara</a>
+      <a href="#how">Cara pakai</a>
+      <a href="#faq">FAQ</a>
+      <a href="../index.html">← ModManga AI</a>
+    </nav>
+  </div>
+  <div class="wrap footer-bottom">
+    <span>© <span id="year"></span> TTSFree.clone · dibuat untuk belajar</span>
+    <span>Suara: Web Speech · Google Translate · Puter (Neural)</span>
+  </div>
+</footer>
+
+<!-- ============ MODAL MASUK (opsional, tanpa batas karakter) ============ -->
+<div class="modal" id="loginModal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+    <button class="modal-close" id="loginClose" type="button" aria-label="Tutup">✕</button>
+    <h3 id="loginTitle">Masuk (opsional)</h3>
+    <p class="micro">Di klon ini <b>semua fitur sudah terbuka tanpa akun dan tanpa batas karakter</b>. Login hanya menyimpan nama panggilanmu di perangkat.</p>
+    <form id="loginForm">
+      <label class="field">
+        <span>Nama panggilan</span>
+        <input type="text" id="loginName" placeholder="mis. Rani" autocomplete="nickname" required maxlength="24">
+      </label>
+      <button class="btn-primary btn-block" type="submit">Simpan nama</button>
+    </form>
+    <p class="micro" id="loginStatus"></p>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap" aria-live="polite" aria-atomic="true"></div>
+
+<script src="assets/app.js"></script>
+</body>
+</html>

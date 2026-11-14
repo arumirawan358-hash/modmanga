@@ -3,10 +3,10 @@
    ========================================================= */
 
 import {
-  $, $$, uid, toast, escapeHtml, cooldown, slugify, copyText,
+  $, $$, uid, toast, escapeHtml, slugify, copyText,
 } from "./util.js";
 import {
-  IMAGE_STYLES, RATIOS, IMAGE_SURPRISES, PUTER_IMAGE_MODELS, POLLINATIONS,
+  IMAGE_STYLES, RATIOS, IMAGE_SURPRISES, PUTER_IMAGE_MODELS,
 } from "./config.js";
 import { getPrefs, setPrefs, onPrefs } from "./prefs.js";
 import {
@@ -19,7 +19,7 @@ const MAX_GALLERY = 40;
 let els = {};
 let gallery = [];
 let objectUrls = new Map();
-let generating = false;
+let running = false;
 let controller = null;
 let timer = null;
 let activeStyle = "anime";
@@ -70,6 +70,7 @@ export async function initImage() {
   updateHint();
   updateCount();
   randomizeSeed();
+  syncGenBtn();
 
   onPrefs(() => {
     syncEngineUI();
@@ -110,16 +111,20 @@ function syncEngineUI() {
 function updateHint() {
   if (!els.hint) return;
   const engine = getPrefs().imageEngine;
+  const pending = queue.length + (running ? 1 : 0);
+
   if (engine === "puter") {
-    els.hint.textContent = getPrefs().puterConnected
-      ? "Puter · model gambar akunmu · kualitas & rasio lebih fleksibel."
-      : "Puter belum terhubung. Hubungkan akun gratis di Pengaturan.";
+    els.hint.textContent = !getPrefs().puterConnected
+      ? "Hanzal AI butuh login Puter. Klik Login ke Puter di Pengaturan — atau pakai Pollinations tanpa login."
+      : pending > 1
+        ? `${pending} gambar diproses berurutan tanpa jeda buatan.`
+        : "Puter · model gambar akunmu · kualitas & rasio lebih fleksibel.";
     return;
   }
-  const remaining = cooldown.remaining("pollinations-image");
-  els.hint.textContent = remaining > 0
-    ? `Jeda gratis ${Math.ceil(remaining / 1000)} detik sebelum gambar berikutnya.`
-    : "Pollinations gratis tanpa login · maksimal 768px · dijeda ±45 detik per gambar.";
+
+  els.hint.textContent = pending > 1
+    ? `${pending} gambar dalam antrean — diproses langsung, tanpa diminta menunggu.`
+    : "Pollinations gratis tanpa login · setiap klik langsung diproses, tanpa diminta menunggu.";
 }
 
 function updateCount() {
@@ -201,7 +206,7 @@ function stopTimer() {
   timer = null;
 }
 
-function showGenerating(prompt, engine) {
+function showGenerating(prompt, engine, queued = 0) {
   if (!els.status) return;
   const started = Date.now();
   els.status.hidden = false;
@@ -210,7 +215,7 @@ function showGenerating(prompt, engine) {
       <div class="skeleton"></div>
       <div class="gen-overlay">
         <span class="gen-spark"><svg class="ico" aria-hidden="true"><use href="#i-sparkles"></use></svg></span>
-        <b id="genStatusText">${engine === "puter" ? "Meminta gambar ke Puter…" : "Menggambar dengan Flux…"}</b>
+        <b id="genStatusText">${engine === "puter" ? "Meminta gambar ke Puter…" : "Menggambar dengan Flux…"}${queued > 0 ? ` <span class="gen-queue">· ${queued} antre</span>` : ""}</b>
         <small id="genStatusTime">0 detik</small>
         <button type="button" class="ghost-btn" data-cancel="1">Batalkan</button>
       </div>
@@ -226,8 +231,8 @@ function showGenerating(prompt, engine) {
   timer = setInterval(() => {
     const seconds = (Date.now() - started) / 1000;
     if (timeEl) timeEl.textContent = `${Math.round(seconds)} detik`;
-    if (textEl && seconds > 22) textEl.textContent = "Masih mengerjakan detail…";
-    if (textEl && seconds > 50) textEl.textContent = "Hampir selesai, gambar gratis memang sabar…";
+    if (textEl && !textEl.dataset.custom && seconds > 22) textEl.textContent = "Masih mengerjakan detail…";
+    if (textEl && !textEl.dataset.custom && seconds > 50) textEl.textContent = "Model masih menyelesaikan gambar…";
   }, 500);
 }
 
@@ -243,7 +248,7 @@ function showError(message, { connect = false } = {}) {
         <p>${escapeHtml(message)}</p>
       </div>
       <div class="gen-error-actions">
-        ${connect ? '<button type="button" class="primary-btn sm" data-connect="1">Hubungkan Puter</button>' : ""}
+        ${connect ? '<button type="button" class="primary-btn sm" data-connect="1">Login ke Puter</button>' : ""}
         <button type="button" class="ghost-btn" data-retry="1">Coba lagi</button>
         <button type="button" class="ghost-btn" data-dismiss="1">Tutup</button>
       </div>
@@ -274,8 +279,28 @@ function randomizeSeed() {
   }
 }
 
-async function generate() {
-  if (generating) return;
+/* ---------------- generate (antrean, tanpa jeda buatan) ---------------- */
+const queue = [];
+
+function setGenStatus(text) {
+  const textEl = els.status ? $("#genStatusText", els.status) : null;
+  if (!textEl) return;
+  textEl.textContent = text;
+  textEl.dataset.custom = "1";
+}
+
+function syncGenBtn() {
+  const btn = els.genBtn;
+  if (!btn) return;
+  const span = btn.querySelector("span");
+  const pending = queue.length;
+  btn.disabled = false; // selalu bisa diklik: klik berikutnya masuk antrean
+  if (!running) span.textContent = "Buat gambar";
+  else if (pending > 0) span.textContent = `Tambah antrean · ${pending}`;
+  else span.textContent = "Menggambar…";
+}
+
+function enqueueGeneration() {
   const rawPrompt = currentPrompt();
   if (!rawPrompt) {
     toast("Tulis dulu ide gambarmu.", { type: "warn" });
@@ -284,103 +309,127 @@ async function generate() {
   }
 
   const engine = getPrefs().imageEngine;
-  if (engine === "pollinations") {
-    const remaining = cooldown.remaining("pollinations-image");
-    if (remaining > 0) {
-      toast(`Tunggu ${Math.ceil(remaining / 1000)} detik lagi untuk gambar gratis berikutnya.`, { type: "warn" });
-      return;
-    }
+  if (engine === "puter" && !getPrefs().puterConnected) {
+    toast("Puter belum terhubung. Pakai Pollinations (tanpa login) atau hubungkan akun gratis di Pengaturan.", { type: "warn" });
+    return;
   }
 
   const ratio = RATIOS.find((item) => item.id === activeRatio) || RATIOS[0];
   const seed = Number(els.seed?.value) || Math.floor(Math.random() * 999_999_999) + 1;
-  const prompt = fullPrompt(rawPrompt);
   const model = engine === "puter" ? els.model?.value || "" : "";
 
-  generating = true;
-  controller = new AbortController();
-  if (els.genBtn) {
-    els.genBtn.disabled = true;
-    els.genBtn.querySelector("span").textContent = "Menggambar…";
-  }
-  hideStatus();
-  showGenerating(prompt, engine);
+  queue.push({
+    id: uid("job"),
+    rawPrompt,
+    prompt: fullPrompt(rawPrompt),
+    ratio,
+    seed,
+    engine,
+    model,
+    safe: Boolean(els.safe?.checked),
+  });
 
+  randomizeSeed(); // siapkan seed baru untuk klik berikutnya
+  syncGenBtn();
+  updateHint();
+  runQueue();
+}
+
+function generate() {
+  enqueueGeneration();
+}
+
+async function runQueue() {
+  if (running) return;
+  running = true;
   try {
-    let blob;
-    let remoteUrl = "";
-    if (engine === "puter") {
-      if (!getPrefs().puterConnected) {
-        throw new AiError("Akun Puter belum terhubung. Hubungkan gratis dulu, lalu coba lagi.", {
-          code: "auth",
-          provider: "puter",
-        });
-      }
-      const result = await puterImage({
-        prompt,
-        model,
-        aspectRatio: ratio.id,
-        signal: controller.signal,
-      });
-      if (result instanceof Blob) blob = result;
-      else remoteUrl = result.remoteUrl || "";
-    } else {
-      const url = buildPollinationsImageUrl({
-        prompt,
-        width: ratio.w,
-        height: ratio.h,
-        seed,
-        safe: Boolean(els.safe?.checked),
-      });
-      blob = await fetchPollinationsImage(url, { signal: controller.signal });
-      cooldown.start("pollinations-image", POLLINATIONS.imageCooldown);
-    }
-
-    const record = {
-      id: uid("img"),
-      prompt: rawPrompt,
-      fullPrompt: prompt,
-      width: ratio.w,
-      height: ratio.h,
-      ratio: ratio.id,
-      style: activeStyle,
-      seed,
-      engine,
-      model,
-      createdAt: Date.now(),
-      blob: blob || null,
-      remoteUrl: remoteUrl || null,
-    };
-
-    hideStatus();
-    await persist(record);
-    updateHint();
-    randomizeSeed();
-    toast("Gambar siap! Tersimpan di galeri perangkatmu.", { type: "ok" });
-    els.gallery?.firstElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  } catch (error) {
-    if (error?.name === "AbortError") {
-      hideStatus();
-      toast("Dibatalkan.", { type: "info", timeout: 2200 });
-    } else if (error instanceof AiError) {
-      if (error.code === "rate_limit") {
-        cooldown.start("pollinations-image", error.retryAfter || POLLINATIONS.imageCooldown);
-        toast("Kuota gambar gratis sedang jeda. Coba lagi sebentar lagi.", { type: "warn" });
-      }
-      showError(error.message, { connect: error.code === "auth" });
+    while (queue.length) {
+      const job = queue.shift();
+      controller = new AbortController();
+      syncGenBtn();
       updateHint();
-    } else {
-      showError(error?.message || "Terjadi kesalahan tak terduga.");
+      hideStatus();
+      showGenerating(job.prompt, job.engine, queue.length);
+      try {
+        await runJob(job, controller.signal);
+      } catch (error) {
+        handleJobError(error);
+      } finally {
+        controller = null;
+      }
     }
   } finally {
-    generating = false;
-    controller = null;
-    stopTimer();
-    if (els.genBtn) {
-      els.genBtn.disabled = false;
-      els.genBtn.querySelector("span").textContent = "Buat gambar";
-    }
+    running = false;
+    syncGenBtn();
+    updateHint();
   }
+}
+
+async function runJob(job, signal) {
+  let blob = null;
+  let remoteUrl = "";
+
+  if (job.engine === "puter") {
+    const result = await puterImage({
+      prompt: job.prompt,
+      model: job.model,
+      aspectRatio: job.ratio.id,
+      signal,
+    });
+    if (result instanceof Blob) blob = result;
+    else remoteUrl = result.remoteUrl || "";
+  } else {
+    const url = buildPollinationsImageUrl({
+      prompt: job.prompt,
+      width: job.ratio.w,
+      height: job.ratio.h,
+      seed: job.seed,
+      safe: job.safe,
+    });
+    blob = await fetchPollinationsImage(url, {
+      signal,
+      onRetry: ({ attempt, attempts, reason }) => {
+        if (reason === "rate_limit") setGenStatus(`Penyedia ramai · coba ulang otomatis ${attempt}/${attempts}`);
+        else setGenStatus(`Menyambung ulang · percobaan ${attempt}/${attempts}`);
+      },
+    });
+  }
+
+  const record = {
+    id: uid("img"),
+    prompt: job.rawPrompt,
+    fullPrompt: job.prompt,
+    width: job.ratio.w,
+    height: job.ratio.h,
+    ratio: job.ratio.id,
+    style: activeStyle,
+    seed: job.seed,
+    engine: job.engine,
+    model: job.model,
+    createdAt: Date.now(),
+    blob: blob || null,
+    remoteUrl: remoteUrl || null,
+  };
+
+  hideStatus();
+  await persist(record);
+  syncGenBtn();
+  updateHint();
+  els.gallery?.firstElementChild?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  toast(queue.length ? "Gambar siap! Lanjut ke antrean berikutnya." : "Gambar siap! Tersimpan di galeri perangkatmu.", { type: "ok" });
+}
+
+function handleJobError(error) {
+  if (error?.name === "AbortError") {
+    hideStatus();
+    toast("Dibatalkan.", { type: "info", timeout: 2200 });
+    return;
+  }
+  if (error instanceof AiError && error.code === "auth") {
+    showError(error.message, { connect: true });
+    return;
+  }
+  showError(error?.message || "Terjadi kesalahan tak terduga.");
 }
 
 /* ---------------- lightbox & item ---------------- */
@@ -468,6 +517,12 @@ function bind() {
   els.status?.addEventListener("click", async (event) => {
     if (event.target.closest("[data-cancel]")) {
       controller?.abort();
+      if (queue.length) {
+        queue.length = 0;
+        syncGenBtn();
+        updateHint();
+        toast("Antrean dikosongkan.", { type: "info", timeout: 2400 });
+      }
       return;
     }
     if (event.target.closest("[data-dismiss]")) {
@@ -488,7 +543,7 @@ function bind() {
         toast(`Terhubung sebagai ${user.username}.`, { type: "ok" });
         hideStatus();
       } catch (error) {
-        toast(error?.message || "Gagal menghubungkan Puter.", { type: "error" });
+        toast(error?.message || "Gagal login ke Puter.", { type: "error" });
       } finally {
         button.disabled = false;
       }

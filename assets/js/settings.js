@@ -35,6 +35,8 @@ export function toggleTheme() {
 export function initSettings() {
   els = {
     themeCards: $("#themeCards"),
+    profileName: $("#setProfileName"),
+    saveProfileName: $("#saveProfileName"),
     chatEngine: $("#setChatEngine"),
     imageEngine: $("#setImageEngine"),
     puterUser: $("#puterUser"),
@@ -68,6 +70,7 @@ function syncControls() {
   if (els.chatEngine) els.chatEngine.value = prefs.chatEngine;
   if (els.imageEngine) els.imageEngine.value = prefs.imageEngine;
 
+  if (els.profileName) els.profileName.value = prefs.profile?.name || "";
   if (els.customBase) els.customBase.value = prefs.custom?.baseUrl || "";
   if (els.customKey) els.customKey.value = prefs.custom?.apiKey || "";
   if (els.customModel) els.customModel.value = prefs.custom?.model || "";
@@ -83,14 +86,14 @@ async function refreshAccount() {
 
   if (!connected) {
     els.puterUser.textContent = "Belum terhubung";
-    els.puterUserSub.textContent = "Login gratis lewat popup Puter — tanpa API key.";
+    els.puterUserSub.textContent = "Hanzal AI butuh akun gratis Puter. Login sekali, tanpa API key.";
     if (els.puterConnect) els.puterConnect.hidden = false;
     if (els.puterSignOut) els.puterSignOut.hidden = true;
     return;
   }
 
-  els.puterUser.textContent = "Terhubung ke Puter";
-  els.puterUserSub.textContent = "Memuat detail akun…";
+  els.puterUser.textContent = "Login Puter aktif";
+  els.puterUserSub.textContent = "Hanzal AI siap · memuat detail akun…";
   if (els.puterConnect) els.puterConnect.hidden = true;
   if (els.puterSignOut) els.puterSignOut.hidden = false;
 
@@ -124,6 +127,24 @@ async function refreshStats() {
 }
 
 function bind() {
+  els.saveProfileName?.addEventListener("click", () => {
+    const name = (els.profileName?.value || "").trim().slice(0, 24);
+    if (!name) {
+      toast("Tulis namamu dulu, ya.", { type: "warn" });
+      els.profileName?.focus();
+      return;
+    }
+    setPrefs({ profile: { name } });
+    toast(`Nama disimpan: ${name}.`, { type: "ok", timeout: 2400 });
+  });
+
+  els.profileName?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      els.saveProfileName?.click();
+    }
+  });
+
   els.themeCards?.addEventListener("click", (event) => {
     const card = event.target.closest("[data-set-theme]");
     if (!card) return;
@@ -162,7 +183,7 @@ function bind() {
   els.puterSignOut?.addEventListener("click", async () => {
     await disconnectPuter();
     setPrefs({ puterConnected: false });
-    toast("Keluar dari akun Puter.", { type: "info" });
+    toast("Keluar dari akun Puter. Hanzal AI nonaktif sampai login lagi.", { type: "info" });
     await refreshAccount();
   });
 

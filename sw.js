@@ -2,7 +2,7 @@
    Strategi: network-first (selalu segar), cache sebagai cadangan offline.
    Permintaan ke penyedia AI (origin lain) tidak pernah di-cache. */
 
-const CACHE = "modmanga-shell-v1";
+const CACHE = "modmanga-shell-v2";
 
 const SHELL = [
   "./",
