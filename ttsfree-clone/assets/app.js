@@ -272,13 +272,21 @@ function encodeWav(buffer) {
   return new Blob([view.buffer], { type: "audio/wav" });
 }
 
-function loadScript(src) {
+function loadScript(src, timeoutMs = 12000) {
   return new Promise((resolve, reject) => {
     if ($$(`script[src="${src}"]`).length) return resolve();
     const s = document.createElement("script");
+    let done = false;
+    const finish = (fn, arg) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      fn(arg);
+    };
+    const timer = setTimeout(() => finish(reject, new Error("Waktu habis memuat " + src)), timeoutMs);
     s.src = src;
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("Gagal memuat " + src));
+    s.onload = () => finish(resolve);
+    s.onerror = () => finish(reject, new Error("Gagal memuat " + src));
     document.head.appendChild(s);
   });
 }
@@ -306,7 +314,6 @@ const state = {
   pitch: 1,
   volume: 1,
   loggedIn: false,
-  limit: 500,
   music: { on: false, preset: "lofi", volume: 0.22, mix: true, url: "" },
   last: null,                 // { engine, voice, text, buffer, blob, mime, url, duration }
   history: [],
@@ -404,17 +411,9 @@ function renderTracks() {
    --------------------------------------------------------- */
 function updateCounter() {
   const len = els.text.value.length;
-  els.count.textContent = String(len);
-  els.limit.textContent = String(state.limit);
-  els.text.maxLength = state.limit;
-  els.counter.classList.toggle("is-near", len > state.limit * 0.85 && len < state.limit);
-  els.counter.classList.toggle("is-full", len >= state.limit);
-}
-
-function setLimit(limit) {
-  state.limit = limit;
-  els.text.maxLength = limit;
-  updateCounter();
+  els.count.textContent = len.toLocaleString("id-ID");
+  els.text.maxLength = 524288; // batas teknis browser saja, bukan batas layanan
+  els.counter.classList.toggle("is-long", len > 8000);
 }
 
 /* ---------------------------------------------------------
@@ -938,6 +937,11 @@ function setProgress(pct, label) {
 /* ---------------------------------------------------------
    11. KONVERSI
    --------------------------------------------------------- */
+function revealPlayerOnMobile() {
+  if (typeof window.matchMedia !== "function") return;
+  if (!window.matchMedia("(max-width: 1040px)").matches) return;
+  document.getElementById("player")?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
 async function convert({ previewOnly = false } = {}) {
   const text = (els.text.value || "").trim();
   const lang = currentLang();
@@ -972,6 +976,7 @@ async function convert({ previewOnly = false } = {}) {
   els.playerMeta.textContent = `${voice.name} · ${voice.id}`;
 
   if (state.music.on) startMusic().catch(() => {});
+  if (!previewOnly) setTimeout(revealPlayerOnMobile, 320);
 
   try {
     if (voice.kind === "neural") {
@@ -998,39 +1003,32 @@ async function convert({ previewOnly = false } = {}) {
 
 async function convertBrowser(text, voice, lang, rate, pitch, previewOnly) {
   els.playerEngine.textContent = "Web Speech API";
-  setProgress(55, "Menyiapkan mesin browser");
   state.last = { engine: "browser", voice, text, blob: null, buffer: null, duration: 0 };
   els.downloadBtn.disabled = true;
   els.shareBtn.disabled = false;
-  els.playerHint.textContent = "Suara browser tidak bisa direkam/diunduh. Pilih mesin Google atau suara AI-2 di samping.";
+  els.playerHint.textContent = "Suara browser tidak bisa direkam/diunduh. Pilih mesin Google atau suara AI-2 untuk unduhan.";
 
+  const chunks = chunkText(text, 180);
   const est = Math.max(1.2, text.length / 14);
-  let elapsed = 0;
-  const timer = setInterval(() => {
-    elapsed += 0.2;
-    const p = clamp(30 + (elapsed / est) * 70, 30, 99);
-    setProgress(p, "Membacakan");
-    els.curTime.textContent = fmtTime(elapsed);
-    els.durTime.textContent = fmtTime(est);
-  }, 200);
-
-  wave.animate(() => clamp(0.3 + Math.random() * 0.2, 0, 1));
   els.playBtn.classList.add("is-playing");
 
   try {
-    await speakBrowser(text, {
-      rate, pitch, voice, lang,
-      onStart: () => {
-        els.playerBadge.textContent = "Memutar";
-        setProgress(96, "Memutar");
-      },
-    });
+    for (let i = 0; i < chunks.length; i++) {
+      const label = chunks.length > 1 ? `Membacakan ${i + 1}/${chunks.length}` : "Membacakan";
+      setProgress(20 + ((i + 0.5) / chunks.length) * 78, label);
+      els.playerBadge.textContent = "Memutar";
+      els.curTime.textContent = fmtTime((i / chunks.length) * est);
+      els.durTime.textContent = fmtTime(est);
+      wave.animate(() => clamp(0.3 + Math.random() * 0.25, 0, 1));
+      // eslint-disable-next-line no-await-in-loop
+      await speakBrowser(chunks[i], { rate, pitch, voice, lang });
+    }
     setProgress(100, "Selesai");
   } finally {
-    clearInterval(timer);
     els.playBtn.classList.remove("is-playing");
     wave.stop();
     wave.draw(1);
+    els.curTime.textContent = fmtTime(est);
     els.playerBadge.textContent = "Selesai";
     if (state.music.on) stopMusic();
   }
@@ -1082,16 +1080,37 @@ async function convertGoogle(text, voice, lang, rate, pitch, previewOnly) {
   if (!previewOnly) addHistory(text, voice, "google", null);
 }
 
+function mergeAudioBuffers(buffers, ctx, gapSeconds = 0.22) {
+  const channels = Math.max(2, ...buffers.map((b) => b.numberOfChannels));
+  const gap = Math.floor(ctx.sampleRate * gapSeconds);
+  const total = buffers.reduce((n, b) => n + b.length + gap, 0);
+  const out = ctx.createBuffer(channels, total, ctx.sampleRate);
+  let offset = 0;
+  buffers.forEach((buffer) => {
+    for (let c = 0; c < channels; c++) {
+      const src = buffer.getChannelData(Math.min(c, buffer.numberOfChannels - 1));
+      out.getChannelData(c).set(src, offset);
+    }
+    offset += buffer.length + gap;
+  });
+  return out;
+}
+
 async function convertPuter(text, voice, lang, rate, previewOnly) {
   els.playerEngine.textContent = "Puter AI (neural)";
-  setProgress(35, "Menghubungi mesin neural");
-  els.playerHint.textContent = "Suara neural butuh login gratis Puter sekali klik. Hasilnya MP3 asli dan bisa diunduh.";
+  const parts = chunkText(text, 900);
+  els.playerHint.textContent = "Suara neural butuh login gratis Puter sekali klik. Teks panjang diproses per bagian lalu digabung otomatis.";
+  setProgress(20, parts.length > 1 ? `Menyiapkan ${parts.length} bagian` : "Menghubungi mesin neural");
 
-  let result;
+  let raws = [];
   try {
-    result = await synthPuter(text, voice, lang);
+    for (let i = 0; i < parts.length; i++) {
+      setProgress(25 + (i / parts.length) * 55, parts.length > 1 ? `Bagian ${i + 1}/${parts.length}` : "Membuat suara");
+      // eslint-disable-next-line no-await-in-loop
+      raws.push(await synthPuter(parts[i], voice, lang));
+    }
   } catch (error) {
-    // fallback: neural tidak tersedia -> coba Google, lalu browser
+    raws = [];
     toast("Neural belum bisa dipakai (login/popup diblokir). Beralih ke mesin Google.", "warn", 6000);
     els.playerEngine.textContent = "Google (fallback)";
     const chunks = chunkText(text, 190);
@@ -1111,18 +1130,37 @@ async function convertPuter(text, voice, lang, rate, previewOnly) {
     return;
   }
 
-  setProgress(85, "Menyiapkan audio");
+  setProgress(88, "Menggabungkan audio");
   const ctx = getCtx();
-  let buffer = null;
-  try {
-    buffer = await ctx.decodeAudioData(result.arrayBuffer.slice(0));
-  } catch {
-    buffer = null;
+  const decoded = [];
+  for (const raw of raws) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      decoded.push(await ctx.decodeAudioData(raw.arrayBuffer.slice(0)));
+    } catch { /* bagian ini tidak bisa di-decode, dilewati */ }
   }
 
-  const mime = result.mime || "audio/mpeg";
-  const blob = new Blob([result.arrayBuffer], { type: mime });
-  const ext = /wav/.test(mime) ? "wav" : "mp3";
+  let buffer = null;
+  let blob;
+  let ext;
+  let mime;
+  if (decoded.length === raws.length && decoded.length > 1) {
+    buffer = mergeAudioBuffers(decoded, ctx);
+    blob = encodeWav(buffer);
+    ext = "wav";
+    mime = "audio/wav";
+  } else if (raws.length === 1) {
+    mime = raws[0].mime || "audio/mpeg";
+    blob = new Blob([raws[0].arrayBuffer], { type: mime });
+    ext = /wav/.test(mime) ? "wav" : "mp3";
+    buffer = decoded[0] || null;
+  } else {
+    // gabung byte apa adanya bila decode gagal (MP3 masih bisa diputar berurutan)
+    mime = raws[0]?.mime || "audio/mpeg";
+    blob = new Blob(raws.map((r) => r.arrayBuffer), { type: mime });
+    ext = /wav/.test(mime) ? "wav" : "mp3";
+    buffer = decoded[0] || null;
+  }
 
   state.last = {
     engine: "puter", voice, text, blob, buffer, mime, ext,
@@ -1135,8 +1173,7 @@ async function convertPuter(text, voice, lang, rate, previewOnly) {
   els.playerBadge.textContent = "Siap diputar";
 
   if (buffer) {
-    await playBuffer(buffer, { rate: 1, onProgress: () => {} });
-    setProgress(100, "Selesai");
+    await playBuffer(buffer, { rate: 1 });
     els.playerBadge.textContent = "Memutar";
   } else {
     const audio = new Audio(state.last.url);
@@ -1145,12 +1182,9 @@ async function convertPuter(text, voice, lang, rate, previewOnly) {
     stopCurrent = () => { try { audio.pause(); } catch { /* noop */ } };
     els.playBtn.classList.add("is-playing");
     wave.animate(() => clamp(0.35 + Math.random() * 0.25, 0, 1));
-    setProgress(100, "Selesai");
   }
+  setProgress(100, "Selesai");
 
-  if (state.music.on) {
-    setTimeout(() => { if (!previewOnly) stopMusic(); }, 1200);
-  }
   if (!previewOnly) addHistory(text, voice, "puter", state.last.url);
 }
 
@@ -1468,20 +1502,36 @@ function bind() {
   /* login modal */
   const openLogin = () => { els.loginModal.hidden = false; setTimeout(() => els.loginName?.focus(), 60); };
   els.loginBtn.addEventListener("click", openLogin);
-  els.loginInline.addEventListener("click", openLogin);
+
+  els.pasteBtn.addEventListener("click", async () => {
+    try {
+      const clip = await navigator.clipboard.readText();
+      if (!clip.trim()) { toast("Clipboard kosong.", "warn"); return; }
+      els.text.value = clip;
+      updateCounter();
+      toast(`${clip.length.toLocaleString("id-ID")} karakter ditempel.`, "ok", 2400);
+    } catch {
+      toast("Browser tidak memberi izin baca clipboard. Tempel manual dengan Ctrl/Cmd + V.", "warn", 5000);
+      els.text.focus();
+    }
+  });
+
+  els.clearText.addEventListener("click", () => {
+    els.text.value = "";
+    updateCounter();
+    els.text.focus();
+  });
   els.loginClose.addEventListener("click", () => { els.loginModal.hidden = true; });
   els.loginModal.addEventListener("click", (e) => { if (e.target === els.loginModal) els.loginModal.hidden = true; });
   els.loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const name = els.loginName.value.trim() || "Sahabat";
     state.loggedIn = true;
-    setLimit(3000);
     store.set("ttsfree.login", { name });
-    els.loginStatus.textContent = `Halo ${name}! Limit naik jadi 3.000 karakter.`;
+    els.loginStatus.textContent = `Halo ${name}! Semua fitur & batas karakter sudah terbuka sejak awal.`;
     els.loginBtn.textContent = name;
-    els.loginInline.textContent = "Limit 3.000 karakter aktif ✓";
     setTimeout(() => { els.loginModal.hidden = true; }, 900);
-    toast(`Login lokal berhasil. Limit sekarang 3.000 karakter.`, "ok");
+    toast(`Halo ${name}! Tidak ada batas karakter di sini.`, "ok");
   });
 
   document.addEventListener("keydown", (e) => {
@@ -1502,9 +1552,7 @@ function restore() {
   const login = store.get("ttsfree.login", null);
   if (login?.name) {
     state.loggedIn = true;
-    state.limit = 3000;
     els.loginBtn.textContent = login.name;
-    els.loginInline.textContent = "Limit 3.000 karakter aktif ✓";
   }
   state.history = (store.get("ttsfree.history", []) || []).map((h) => ({ ...h }));
 
@@ -1520,8 +1568,9 @@ function cacheEls() {
   els.lang = $("#lang");
   els.text = $("#text");
   els.count = $("#count");
-  els.limit = $("#limit");
   els.counter = $(".counter");
+  els.pasteBtn = $("#pasteBtn");
+  els.clearText = $("#clearText");
   els.voiceGrid = $("#voiceGrid");
   els.catalog = $("#catalog");
   els.engineSeg = $("#engineSeg");
@@ -1559,7 +1608,6 @@ function cacheEls() {
   els.burger = $("#burger");
   els.nav = $("#mainNav");
   els.loginBtn = $("#loginBtn");
-  els.loginInline = $("#loginInline");
   els.loginModal = $("#loginModal");
   els.loginClose = $("#loginClose");
   els.loginForm = $("#loginForm");

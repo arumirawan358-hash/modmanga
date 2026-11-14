@@ -29,7 +29,7 @@ python3 -m http.server 8080 --directory ttsfree-clone --bind 0.0.0.0
 |---|------|-----|
 | 1 | Header | logo `TTSFree.com`, menu (Home, Text to Speech, Languages, Blog), tombol Login/Register |
 | 2 | Hero | H1 "Text to Speech Indonesian online free", subjudul, 4 checklist (700+ suara, 140+ bahasa, MP3, komersial), CTA "Try Free Now" |
-| 3 | **Konverter** | textarea + penghitung `0 / 500 characters` + tautan "Login untuk lebih banyak karakter" |
+| 3 | **Konverter** | textarea + penghitung `0 / 500 characters` + tautan "Login untuk lebih banyak karakter" (di klon: **tanpa batas**) |
 | 4 | Pemilih bahasa | dropdown berisi `69. Indonesian (Indonesia) - ID` dengan ikon bendera |
 | 5 | **Voice list** | tab `AI-1` / `AI-2`, grid kartu suara: ikon pria/wanita, nama, label mesin, ikon 🔒 + "Premium" untuk Wavenet |
 | 6 | Kontrol suara | `Voice Speed` dan `Speech Pitch` (default), slider, pratinjau tiap suara |
@@ -64,7 +64,7 @@ python3 -m http.server 8080 --directory ttsfree-clone --bind 0.0.0.0
 | Standard-A…D (AI-1) | **Google Translate TTS** (`translate.google.com/translate_tts?tl=id`) | suara wanita Indonesia Google, natural, tanpa key, MP3 bisa diambil |
 | Pratinjau instan / offline | **Web Speech API** (`speechSynthesis`, `lang=id-ID`) | tanpa jaringan, tapi tidak bisa direkam → tidak bisa diunduh |
 | Musik latar FreeMusicBG | **musik prosedural Web Audio API** (4 preset, bebas royalti) | tidak ada file eksternal, jadi bebas CORS dan bebas lisensi |
-| Login untuk 3.000 karakter | modal login **lokal** (isi nama saja) | hanya menaikkan limit, tidak ada data dikirim |
+| Login untuk 3.000 karakter | modal login **opsional** (isi nama saja) | di klon tidak ada batas, login hanya menyimpan nama |
 | Progress "Ready to convert 0%" | progress bar sungguhan (memproses → memutar → selesai) | |
 
 ---
@@ -74,7 +74,7 @@ python3 -m http.server 8080 --directory ttsfree-clone --bind 0.0.0.0
 - **3 mesin suara** dan bisa diganti kapan saja (Browser / Google / Neural otomatis untuk AI-2).
 - **10 suara per bahasa**, sama komposisinya: 2 neural (pria + wanita), 4 standard, 4 premium terkunci.
 - **10 bahasa** dengan bendera & nomor urut seperti daftar bahasa di situs asli (ID, EN-US, EN-GB, MS, JA, KO, AR, ES, HI, ZH).
-- **Penghitung karakter** 500 → naik jadi 3.000 setelah "login" lokal.
+- **Tanpa batas karakter** — 500/3.000 di situs asli tidak dipakai di sini; teks panjang otomatis dipecah per bagian lalu digabung (10.000+ karakter sudah diuji).
 - **Kecepatan & nada** bicara, volume, pratinjau per suara, demo dari hero.
 - **Musik latar** 4 preset (Lo-fi, Ambient, Hujan, Epik) + volume musik + opsi "sertakan musik pada unduhan".
 - **Pemutar** dengan waveform canvas, tombol putar/jeda, durasi, unduh, bagikan.
@@ -83,6 +83,7 @@ python3 -m http.server 8080 --directory ttsfree-clone --bind 0.0.0.0
   - Google → MP3 (byte diambil langsung; kalau server menolak CORS dipakai proxy publik, lalu digabung),
   - dengan musik latar → hasil mixing **WAV** via `OfflineAudioContext` (fade-out halus di akhir).
 - **Riwayat sesi** 12 item di localStorage + tombol hapus.
+- **UI mobile yang dirapikan**: target sentuh ≥46px, font input 16px (anti-zoom iOS), tombol konversi menempel di bawah, pemutar otomatis digulir ke layar, grid suara 2 kolom, area aman `env(safe-area-inset-*)`.
 - **UI responsif** (menu hamburger di mobile), aksesibilitas dasar (role, aria, focus ring), hormati `prefers-reduced-motion`.
 
 ---
@@ -94,6 +95,7 @@ python3 -m http.server 8080 --directory ttsfree-clone --bind 0.0.0.0
 3. **Puter butuh login gratis** (popup). Kalau popup diblokir (mis. di iframe preview), replika otomatis pindah ke mesin Google.
 4. **Suara browser berbeda tiap perangkat.** Chrome biasanya punya "Google Bahasa Indonesia"; Firefox/Safari memakai suara sistem yang mungkin lebih datar.
 5. **Nada (pitch)** hanya berlaku untuk mesin Browser; Google Translate tidak punya parameter pitch, jadi hanya kecepatan yang dipakai.
+6. **Teks sangat panjang** dengan mesin neural diproses per ±900 karakter (satu permintaan per bagian), jadi waktunya sebanding panjang teks — tapi batasnya tidak ada.
 
 ---
 

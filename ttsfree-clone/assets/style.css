@@ -499,3 +499,125 @@ input[type=range]::-moz-range-thumb{width:15px;height:15px;border:2.5px solid va
 }
 
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* =========================================================
+   MOBILE POLISH — tap target, keterbacaan, dan alur 1 tangan
+   ========================================================= */
+
+.unlimited{color:var(--green);font-weight:800}
+.counter-actions{display:flex;gap:14px;align-items:center}
+.counter.is-long #count{color:var(--brand)}
+.counter{flex-wrap:wrap;gap:8px 12px}
+
+/* tombol tempel/bersihkan tetap nyaman ditekan */
+.counter .link{padding:4px 2px}
+
+/* --- tablet & ponsel --- */
+@media (max-width:860px){
+  html{scroll-padding-top:74px}
+  body{-webkit-text-size-adjust:100%}
+  /* cegah iOS auto-zoom saat fokus input */
+  textarea,input[type=text],select{font-size:16px}
+
+  .btn-primary,.btn-outline,.btn-ghost{min-height:46px}
+  .btn-convert{min-height:52px;font-size:17px}
+  .link{min-height:34px;display:inline-flex;align-items:center}
+  .counter .link{min-height:30px}
+
+  .nav{
+    padding:12px 20px calc(18px + env(safe-area-inset-bottom));
+    max-height:calc(100dvh - 64px);overflow:auto;
+  }
+  .nav a{padding:14px 14px;font-size:16px}
+
+  .hero{padding:32px 0 40px}
+  .hero h1{font-size:clamp(28px,8vw,36px);line-height:1.14}
+  .lede{font-size:16px}
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;margin:16px 0 22px}
+  .checks li{font-size:13.5px}
+  .hero-cta{gap:10px}
+  .hero-cta .btn-primary,.hero-cta .btn-outline{flex:1 1 160px}
+  .pill{font-size:12px;padding:6px 12px;margin-bottom:14px}
+
+  .section{padding:44px 0}
+  .section-head{margin-bottom:24px;text-align:left}
+  .section-head h2{font-size:clamp(22px,6.2vw,28px)}
+  .section-head p{font-size:14.5px}
+
+  .converter{padding:16px;border-radius:18px;gap:18px}
+  textarea{min-height:170px}
+  .field{margin-bottom:14px}
+  .voice-head{align-items:flex-start;flex-direction:column;gap:6px}
+
+  /* tombol konversi selalu terjangkau saat menggulir naskah panjang */
+  .convert-bar{
+    position:sticky;bottom:calc(8px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.94);backdrop-filter:blur(12px);
+    border:1px solid var(--line);border-radius:16px;padding:10px;
+    box-shadow:0 -8px 24px -18px rgba(16,24,40,.6);z-index:25;
+  }
+
+  .player{padding:14px;border-radius:18px}
+  .wave{height:80px}
+  .player-actions .btn-primary,.player-actions .btn-outline{flex:1 1 45%}
+  .history-list{max-height:none}
+
+  .steps li{padding:20px 18px}
+  .ucard{padding:18px}
+  .about{padding:18px}
+  .catalog-note{font-size:12.5px}
+  .catalog{grid-template-columns:1fr}
+
+  .footer-inner{gap:20px}
+  .footer-nav{gap:6px 14px}
+  .footer-bottom{flex-direction:column;gap:6px;padding-bottom:env(safe-area-inset-bottom)}
+
+  .modal-card{padding:22px;border-radius:18px;max-height:90dvh;overflow:auto}
+  .toast-wrap{bottom:calc(16px + env(safe-area-inset-bottom))}
+}
+
+/* --- ponsel sempit --- */
+@media (max-width:600px){
+  .wrap{width:calc(100% - 24px)}
+  .header-inner{height:62px;gap:10px}
+  .nav{top:62px}
+  .brand-name{font-size:15.5px}
+  .brand-mark{width:31px;height:31px;border-radius:10px}
+  .header-actions .btn-sm{padding:9px 13px;font-size:13px}
+  .burger{width:42px;height:42px}
+
+  /* ilustrasi hero tidak perlu memakan layar pertama */
+  .hero-art{display:none}
+
+  .voice-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .vcard{padding:10px 10px 9px}
+  .vname{font-size:12.5px}
+  .vmeta{font-size:10px}
+  .vplay{width:26px;height:26px;top:7px;right:7px}
+  .vcard.locked .vlock,.vcard .lock{top:8px;right:8px}
+
+  .row-2,.row-3{grid-template-columns:1fr;gap:12px}
+  .seg button{padding:10px 12px}
+  .tracks{grid-template-columns:1fr 1fr}
+  .track{padding:11px}
+  .inline{flex-direction:column}
+  .inline .btn-outline{width:100%}
+
+  .cat-card{padding:12px}
+  .cat-face{width:38px;height:38px;font-size:18px}
+  .cat-play{width:40px;height:40px;font-size:12px}
+
+  .faq summary{padding:14px;font-size:14px}
+  .faq details p{padding:0 14px 14px;font-size:13px}
+
+  .cta-inner .btn-lg{width:100%}
+  .section-alt{padding:40px 0}
+  .about{font-size:13px}
+  .catalog-note{padding:14px}
+}
+
+@media (max-width:380px){
+  .voice-grid{grid-template-columns:1fr}
+  .checks{grid-template-columns:1fr}
+  .tracks{grid-template-columns:1fr}
+}

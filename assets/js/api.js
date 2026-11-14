@@ -232,48 +232,102 @@ export function buildPollinationsImageUrl({ prompt, width, height, seed, safe = 
   return `${POLLINATIONS.imageBase}${encodeURIComponent(prompt)}?${params.toString()}`;
 }
 
-export async function fetchPollinationsImage(url, { signal } = {}) {
-  let res;
-  try {
-    res = await fetch(url, { signal, headers: { Accept: "image/*" } });
-  } catch (error) {
-    if (error?.name === "AbortError") throw error;
-    throw new AiError("Gagal mengambil gambar dari Pollinations. Coba lagi.", {
-      code: "network",
-      provider: "pollinations",
-      cause: error,
-    });
+/* Jeda yang bisa dibatalkan — dipakai untuk retry otomatis */
+function pause(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const timer = setTimeout(() => {
+      signal?.removeEventListener?.("abort", onAbort);
+      resolve();
+    }, ms);
+    function onAbort() {
+      clearTimeout(timer);
+      reject(new DOMException("Aborted", "AbortError"));
+    }
+    signal?.addEventListener?.("abort", onAbort, { once: true });
+  });
+}
+
+/**
+ * Ambil gambar dari Pollinations. Kalau penyedia membatasi (429/402) atau
+ * jaringan tersendat, permintaan diulang otomatis di latar belakang — pengguna
+ * tidak perlu menunggu hitungan detik lalu klik ulang.
+ */
+export async function fetchPollinationsImage(url, { signal, attempts = 4, onRetry } = {}) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    // sertakan penanda percobaan agar CDN tidak mengembalikan respons 429 yang tersimpan
+    const attemptUrl = attempt === 1 ? url : `${url}&_r=${attempt}`;
+    let res;
+
+    try {
+      res = await fetch(attemptUrl, { signal, headers: { Accept: "image/*" } });
+    } catch (error) {
+      if (error?.name === "AbortError") throw error;
+      lastError = new AiError("Koneksi ke Pollinations terputus.", {
+        code: "network",
+        provider: "pollinations",
+        cause: error,
+      });
+      if (attempt >= attempts) throw lastError;
+      const waitMs = Math.min(900 * attempt, 3000);
+      onRetry?.({ attempt, attempts, waitMs, reason: "network" });
+      await pause(waitMs, signal);
+      continue;
+    }
+
+    if (res.status === 402 || res.status === 429) {
+      const suggested = parseRetryAfter(res, 1200 * attempt);
+      const waitMs = Math.min(suggested, 4500); // jangan pernah menyuruh menunggu 45 detik
+      lastError = new AiError(
+        "Kuota gambar gratis sedang ramai. Sudah dicoba otomatis beberapa kali — coba lagi atau pakai mesin Puter.",
+        { code: "rate_limit", provider: "pollinations", retryAfter: waitMs },
+      );
+      if (attempt >= attempts) throw lastError;
+      onRetry?.({ attempt, attempts, waitMs, reason: "rate_limit" });
+      await pause(waitMs, signal);
+      continue;
+    }
+
+    if (!res.ok) {
+      if (res.status >= 500 && attempt < attempts) {
+        const waitMs = Math.min(800 * attempt, 2500);
+        onRetry?.({ attempt, attempts, waitMs, reason: `http_${res.status}` });
+        await pause(waitMs, signal);
+        continue;
+      }
+      throw new AiError(`Pollinations menolak permintaan gambar (HTTP ${res.status}).`, {
+        code: "http",
+        provider: "pollinations",
+      });
+    }
+
+    const type = res.headers.get("content-type") || "";
+    if (type && !type.startsWith("image/")) {
+      const raw = await res.text().catch(() => "");
+      const notice = extractCompletion(raw).slice(0, 220);
+      throw new AiError(
+        notice || "Prompt ini ditolak oleh penyedia gambar. Ubah sedikit kata-katanya, lalu coba lagi.",
+        { code: "refused", provider: "pollinations" },
+      );
+    }
+
+    const blob = await res.blob();
+    if (!blob.size) {
+      lastError = new AiError("Gambar kosong diterima. Coba lagi.", { code: "empty", provider: "pollinations" });
+      if (attempt >= attempts) throw lastError;
+      onRetry?.({ attempt, attempts, waitMs: 800, reason: "empty" });
+      await pause(800, signal);
+      continue;
+    }
+    return blob;
   }
 
-  if (res.status === 402 || res.status === 429) {
-    throw new AiError("Jeda gratis gambar ±45 detik. Tunggu sebentar, atau pakai mesin Puter.", {
-      code: "rate_limit",
-      provider: "pollinations",
-      retryAfter: parseRetryAfter(res, POLLINATIONS.imageCooldown),
-    });
-  }
-  if (!res.ok) {
-    throw new AiError(`Pollinations menolak permintaan gambar (HTTP ${res.status}).`, {
-      code: "http",
-      provider: "pollinations",
-    });
-  }
-
-  const type = res.headers.get("content-type") || "";
-  if (type && !type.startsWith("image/")) {
-    const raw = await res.text().catch(() => "");
-    const notice = extractCompletion(raw).slice(0, 220);
-    throw new AiError(
-      notice || "Prompt ini ditolak oleh penyedia gambar. Ubah sedikit kata-katanya, lalu coba lagi.",
-      { code: "refused", provider: "pollinations" },
-    );
-  }
-
-  const blob = await res.blob();
-  if (!blob.size) {
-    throw new AiError("Gambar kosong diterima. Coba lagi.", { code: "empty", provider: "pollinations" });
-  }
-  return blob;
+  throw lastError || new AiError("Gambar gagal diambil.", { code: "error", provider: "pollinations" });
 }
 
 /* =========================================================

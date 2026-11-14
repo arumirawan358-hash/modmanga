@@ -51,13 +51,14 @@
         <li>✓ Suara neural pria &amp; wanita</li>
         <li>✓ Unduh MP3</li>
         <li>✓ Boleh untuk komersial</li>
+        <li>✓ Tanpa batas karakter</li>
         <li>✓ Tanpa API key</li>
       </ul>
       <div class="hero-cta">
         <a class="btn-primary btn-lg" href="#try-now">Coba Gratis Sekarang</a>
         <button class="btn-outline btn-lg" id="demoBtn" type="button">▶ Dengarkan contoh</button>
       </div>
-      <p class="hero-note">Sama seperti halaman aslinya: 500 karakter gratis per konversi.</p>
+      <p class="hero-note">Tanpa batas karakter — teks sepanjang apa pun otomatis dipecah per bagian.</p>
     </div>
 
     <div class="hero-art" aria-hidden="true">
@@ -107,10 +108,13 @@
       <div class="conv-main">
         <div class="field">
           <label for="text">Teks</label>
-          <textarea id="text" maxlength="500" placeholder="Ketik atau tempel teks di sini… Contoh: Selamat pagi, apa kabar? Hari ini kita akan belajar membuat suara AI."></textarea>
+          <textarea id="text" placeholder="Ketik atau tempel teks sepanjang apa pun di sini… Contoh: Selamat pagi, apa kabar? Hari ini kita akan belajar membuat suara AI."></textarea>
           <div class="counter">
-            <span><b id="count">0</b> / <span id="limit">500</span> karakter</span>
-            <button type="button" class="link" id="loginInline">Masuk untuk 3.000 karakter</button>
+            <span><b id="count">0</b> karakter · <b class="unlimited">tanpa batas</b></span>
+            <span class="counter-actions">
+              <button type="button" class="link" id="pasteBtn">Tempel</button>
+              <button type="button" class="link" id="clearText">Bersihkan</button>
+            </span>
           </div>
         </div>
 
@@ -378,18 +382,18 @@
   </div>
 </footer>
 
-<!-- ============ MODAL LOGIN (palsu, hanya menaikkan limit) ============ -->
+<!-- ============ MODAL MASUK (opsional, tanpa batas karakter) ============ -->
 <div class="modal" id="loginModal" hidden>
   <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
     <button class="modal-close" id="loginClose" type="button" aria-label="Tutup">✕</button>
-    <h3 id="loginTitle">Masuk untuk 3.000 karakter</h3>
-    <p class="micro">Di situs aslinya fitur ini butuh akun. Di klon ini cukup isi nama — tidak ada data yang dikirim ke mana pun.</p>
+    <h3 id="loginTitle">Masuk (opsional)</h3>
+    <p class="micro">Di klon ini <b>semua fitur sudah terbuka tanpa akun dan tanpa batas karakter</b>. Login hanya menyimpan nama panggilanmu di perangkat.</p>
     <form id="loginForm">
       <label class="field">
         <span>Nama panggilan</span>
         <input type="text" id="loginName" placeholder="mis. Rani" autocomplete="nickname" required maxlength="24">
       </label>
-      <button class="btn-primary btn-block" type="submit">Masuk &amp; naikkan limit</button>
+      <button class="btn-primary btn-block" type="submit">Simpan nama</button>
     </form>
     <p class="micro" id="loginStatus"></p>
   </div>

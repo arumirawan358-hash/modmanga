@@ -79,7 +79,7 @@
       <div class="conv-list" id="convList"></div>
       <p class="side-tip">
         <svg class="ico" aria-hidden="true"><use href="#i-info"></use></svg>
-        Pollinations gratis tanpa login, tetapi ada jeda ±30 detik per pesan.
+        Pollinations gratis tanpa login. Gambar langsung diproses tanpa jeda; chat mengikuti batas ±30 detik per pesan.
       </p>
     </div>
 
@@ -263,7 +263,7 @@
             <svg class="ico" aria-hidden="true"><use href="#i-sparkles"></use></svg>
             <span>Buat gambar</span>
           </button>
-          <p class="hint" id="imgHint">Pollinations gratis tanpa login, dijeda ±45 detik per gambar.</p>
+          <p class="hint" id="imgHint">Pollinations gratis tanpa login · setiap klik langsung diproses, tanpa diminta menunggu.</p>
         </form>
 
         <div class="panel gallery-panel">
@@ -315,9 +315,9 @@
           <div class="field">
             <div class="field-head">
               <label for="ttsText">Naskah</label>
-              <span class="char-count"><span id="ttsCount">0</span>/3000</span>
+              <span class="char-count"><span id="ttsCount">0</span> karakter · tanpa batas</span>
             </div>
-            <textarea id="ttsText" rows="7" maxlength="3000" placeholder="Tulis atau tempel teks di sini…">Selamat datang di ModManga AI. Studio gratis untuk ngobrol, menggambar, dan bersuara — tanpa satu pun API key.</textarea>
+            <textarea id="ttsText" rows="7" placeholder="Tulis atau tempel teks sepanjang apa pun di sini…">Selamat datang di ModManga AI. Studio gratis untuk ngobrol, menggambar, dan bersuara — tanpa satu pun API key.</textarea>
             <div class="chips chips-sm" id="ttsSamples" role="group" aria-label="Contoh naskah"></div>
           </div>
 
@@ -337,7 +337,7 @@
                 <input type="range" id="ttsPitch" min="0.5" max="1.6" step="0.1" value="1">
               </label>
             </div>
-            <p class="hint">Memakai mesin suara bawaan perangkat. Instan, gratis, dan bisa dipakai offline. Untuk mengunduh audio, pilih mesin Puter.</p>
+            <p class="hint">Memakai mesin suara bawaan perangkat. Instan, gratis, bisa offline, dan tanpa batas karakter (teks panjang dibacakan per bagian). Untuk mengunduh audio, pilih mesin Puter.</p>
           </div>
 
           <!-- Puter engine -->
@@ -543,8 +543,8 @@
             <p>Benar. Chat dan gambar memakai API publik <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations</a> yang tidak memerlukan kunci maupun pendaftaran. Suara memakai mesin suara bawaan browser. Fitur tambahan (Puter) memakai akun gratis, bukan API key.</p>
           </details>
           <details class="faq">
-            <summary>Kenapa chat harus menunggu 30 detik?</summary>
-            <p>Kuota gratis Pollinations dibatasi per alamat IP: satu permintaan teks per 30 detik dan satu gambar per 45 detik. Aplikasi menampilkan hitungan mundurnya. Mau tanpa jeda? Hubungkan akun Puter gratis di atas, atau pasang API sendiri.</p>
+            <summary>Apakah gambar harus menunggu 45 detik?</summary>
+            <p>Tidak. Tidak ada jeda buatan untuk gambar: setiap klik langsung diproses, dan klik berikutnya masuk antrean sehingga beberapa gambar bisa dibuat berurutan tanpa disuruh menunggu. Kalau penyedia publik sedang ramai, permintaan diulang otomatis di latar belakang. Chat tetap mengikuti batas penyedia (±30 detik per pesan) — hubungkan akun gratis Puter bila ingin langsung tanpa jeda.</p>
           </details>
           <details class="faq">
             <summary>Apakah dataku dikirim ke suatu tempat?</summary>

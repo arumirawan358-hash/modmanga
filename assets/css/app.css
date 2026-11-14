@@ -1124,3 +1124,45 @@ input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 2px s
 ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 28%, transparent); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
 ::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--accent) 55%, transparent); background-clip: content-box; }
 :focus-visible { outline: 2px solid var(--accent-2); outline-offset: 2px; }
+
+/* ---------- 13. Polish mobile (13 Nov) ---------- */
+.gen-queue { color: var(--accent-2); font-weight: 700; }
+
+@media (max-width: 900px) {
+  /* cegah iOS memperbesar halaman saat input difokuskan */
+  input[type="text"],
+  input[type="number"],
+  input[type="url"],
+  textarea,
+  select { font-size: 16px; }
+
+  .studio { padding-bottom: calc(var(--tabbar-h) + 26px + env(safe-area-inset-bottom)); }
+
+  /* target sentuh lebih nyaman */
+  .chip { min-height: 38px; padding-block: 9px; }
+  .primary-btn, .ghost-btn { min-height: 44px; }
+  .primary-btn.sm, .ghost-btn.sm { min-height: 38px; }
+  .segmented button { min-height: 38px; }
+  .gi-tools button, .gi-tools a { width: 34px; height: 34px; }
+
+  .gallery { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .gen-preview { max-height: 42vh; }
+  .gen-overlay { gap: 6px; padding: 14px; }
+  .gen-overlay .ghost-btn { min-height: 40px; }
+  .gen-error { flex-wrap: wrap; }
+  .gen-error-actions { width: 100%; justify-content: flex-end; }
+
+  .controls .primary-btn #genBtn,
+  #genBtn { min-height: 48px; }
+
+  .field-head .char-count { font-size: 10.5px; }
+  .view-sub { line-height: 1.5; }
+  .toasts { max-width: calc(100% - 28px); }
+}
+
+@media (max-width: 420px) {
+  .studio { padding: 12px 12px 24px; }
+  .gallery { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .chips { gap: 6px; }
+  .chip { font-size: 11px; padding: 8px 11px; }
+}
